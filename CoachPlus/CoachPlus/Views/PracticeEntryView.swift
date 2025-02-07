@@ -19,7 +19,6 @@ struct PracticeEntryView: View {
     @State private var recurrencePattern: RecurrencePattern = .none
     @State private var recurrenceEndDate = Date()
     @State private var showingRecurrenceOptions = false
-    @State private var showingCompetitionSearch = false
     @ObservedObject var viewModel: PracticeViewModel
     let editingPractice: Practice?
     let practiceType: PracticeType
@@ -31,6 +30,8 @@ struct PracticeEntryView: View {
     @State private var blocks: [PracticeBlock] = [PracticeBlock()]  // Start with one empty block
     @State private var showingBlockSearch = false
     @State private var selectedBlockId: UUID? = nil
+    @State private var isDeleting = false
+    @State private var isDismissing = false
     
     init(
         date: Date,
@@ -187,16 +188,26 @@ struct PracticeEntryView: View {
                                                         Label("Search Blocks", systemImage: "magnifyingglass")
                                                     }
                                                     
-                                                    Button(role: .destructive, action: {
+                                                    Button(action: {
                                                         if let index = blocks.firstIndex(where: { $0.id == block.id }) {
-                                                            blocks.remove(at: index)
+                                                            blocks.insert(PracticeBlock(), at: index + 1)
                                                         }
                                                     }) {
+                                                        Label("Insert Block", systemImage: "plus.rectangle.on.rectangle")
+                                                    }
+                                                    
+                                                    Button(role: .destructive) {
+                                                        blocks.removeAll { $0.id == block.id }
+                                                        if blocks.isEmpty {
+                                                            blocks.append(PracticeBlock())
+                                                        }
+                                                    } label: {
                                                         Label("Delete Block", systemImage: "trash")
                                                     }
                                                 } label: {
                                                     Image(systemName: "ellipsis.circle")
-                                                        .foregroundStyle(.blue)
+                                                        .font(.title3)
+                                                        .foregroundStyle(.secondary)
                                                 }
                                             }
                                             .padding(.horizontal, 8)
@@ -376,6 +387,7 @@ struct PracticeEntryView: View {
                         
                         if editingPractice != nil {
                             Button(role: .destructive) {
+                                isDeleting = true
                                 viewModel.deletePractice(for: date)
                                 onSave()
                                 dismiss()
@@ -452,9 +464,6 @@ struct PracticeEntryView: View {
                 }
                 .presentationDetents([.medium])
             }
-            .sheet(isPresented: $showingCompetitionSearch) {
-                CompetitionSearchView(viewModel: viewModel)
-            }
             .sheet(isPresented: $showingBlockSearch) {
                 BlockSearchView(viewModel: viewModel) { selectedBlock in
                     if let selectedBlockId = selectedBlockId,
@@ -465,9 +474,20 @@ struct PracticeEntryView: View {
             }
         }
         .presentationDetents([.large])
+        .interactiveDismissDisabled(false)
         .onDisappear {
-            if !summary.isEmpty && presentationMode.wrappedValue.isPresented {
+            if !summary.isEmpty && !isDeleting {
                 savePractice()
+                onSave()
+            }
+        }
+        .onChange(of: presentationMode.wrappedValue.isPresented) { oldValue, newValue in
+            if !newValue && !isDismissing {
+                isDismissing = true
+                if !summary.isEmpty && !isDeleting {
+                    savePractice()
+                    onSave()
+                }
             }
         }
     }

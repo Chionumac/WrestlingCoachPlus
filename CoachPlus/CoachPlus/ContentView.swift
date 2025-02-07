@@ -13,7 +13,6 @@ struct ContentView: View {
     @State private var showingPracticeDetails = false
     @State private var showingMonthlyFocus = false
     @State private var showingSearchSheet = false
-    @State private var showingCompetitionSearch = false
     @State private var showingDefaultTimeSetting = false
     
     var body: some View {
@@ -70,16 +69,10 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("COACH+")
-                        .font(.system(.title3, design: .rounded, weight: .heavy))
-                        .tracking(4)
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.blue, .green.opacity(0.7)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
+                    Image("AppLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 28)
                 }
                 
                 ToolbarItem(placement: .topBarLeading) {
@@ -93,11 +86,7 @@ struct ContentView: View {
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button(action: { showingSearchSheet = true }) {
-                            Label("Search Practices", systemImage: "magnifyingglass")
-                        }
-                        
-                        Button(action: { showingCompetitionSearch = true }) {
-                            Label("Search Competitions", systemImage: "trophy.fill")
+                            Label("Search", systemImage: "magnifyingglass")
                         }
                         
                         Button(action: { showingDefaultTimeSetting = true }) {
@@ -153,10 +142,7 @@ struct ContentView: View {
                 )
             }
             .sheet(isPresented: $showingSearchSheet) {
-                SearchPracticesView(viewModel: viewModel)
-            }
-            .sheet(isPresented: $showingCompetitionSearch) {
-                CompetitionSearchView(viewModel: viewModel)
+                UnifiedSearchView(viewModel: viewModel)
             }
             .sheet(isPresented: $showingDefaultTimeSetting) {
                 DefaultTimeSettingView(viewModel: viewModel)

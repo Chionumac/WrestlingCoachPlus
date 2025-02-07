@@ -19,16 +19,11 @@ struct LoginView: View {
                     Spacer()
                     
                     // App Logo/Title
-                    Text("COACH+")
-                        .font(.system(size: 42, weight: .heavy, design: .rounded))
-                        .tracking(4)
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.blue, .green.opacity(0.7)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
+                    Image("AppLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 60)
+                        .padding(.bottom, 20)
                     
                     Spacer()
                     

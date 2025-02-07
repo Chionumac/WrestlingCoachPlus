@@ -16,17 +16,11 @@ struct LaunchScreenView: View {
                 VStack {
                     Spacer()
                     
-                    Text("COACH+")
-                        .font(.system(.largeTitle, design: .rounded, weight: .heavy))
-                        .tracking(2)
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.blue, .green.opacity(0.7)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
+                    Image("AppLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 60)
+                        .padding(.bottom, 20)
                     
                     Spacer()
                     
