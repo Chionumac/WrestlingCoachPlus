@@ -14,6 +14,8 @@ struct ContentView: View {
     @State private var showingMonthlyFocus = false
     @State private var showingSearchSheet = false
     @State private var showingDefaultTimeSetting = false
+    @AppStorage("hasSeenTutorial") private var hasSeenTutorial = false
+    @State private var showingTutorial = false
     
     var body: some View {
         NavigationStack {
@@ -100,6 +102,14 @@ struct ContentView: View {
                             .shadow(color: .blue.opacity(0.3), radius: 4)
                     }
                 }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showingTutorial = true
+                    } label: {
+                        Image(systemName: "questionmark.circle")
+                    }
+                }
             }
             .sheet(isPresented: $showingAddPractice) {
                 AddPracticeView(
@@ -146,6 +156,15 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingDefaultTimeSetting) {
                 DefaultTimeSettingView(viewModel: viewModel)
+            }
+            .sheet(isPresented: $showingTutorial) {
+                TutorialView()
+            }
+        }
+        .onAppear {
+            if !hasSeenTutorial {
+                showingTutorial = true
+                hasSeenTutorial = true
             }
         }
     }

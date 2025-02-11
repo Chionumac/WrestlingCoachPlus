@@ -1,5 +1,4 @@
 import Foundation
-import SwiftUICore
 import SwiftUI
 
 class PracticeViewModel: ObservableObject {

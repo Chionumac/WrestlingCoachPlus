@@ -6,9 +6,6 @@
 //
 
 import SwiftUI
-import FirebaseCore
-import FirebaseAnalytics
-import GoogleSignIn
 
 @main
 struct CoachPlusApp: App {
@@ -22,7 +19,7 @@ struct CoachPlusApp: App {
     
     var body: some Scene {
         WindowGroup {
-            LaunchScreenView()
+            ContentView()
         }
     }
 }
@@ -33,26 +30,5 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     
     func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
         return AppDelegate.orientationLock
-    }
-    
-    func application(_ application: UIApplication,
-                    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        FirebaseApp.configure()
-        Analytics.setAnalyticsCollectionEnabled(true)
-        
-        // Configure Google Sign In
-        GIDSignIn.sharedInstance.restorePreviousSignIn { user, error in
-            if let error = error {
-                print("Error restoring Google Sign In: \(error.localizedDescription)")
-            }
-        }
-        
-        return true
-    }
-    
-    func application(_ app: UIApplication,
-                    open url: URL,
-                    options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        return GIDSignIn.sharedInstance.handle(url)
     }
 }
