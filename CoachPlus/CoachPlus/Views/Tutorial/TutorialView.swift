@@ -25,7 +25,7 @@ struct TutorialView: View {
         // Calendar Navigation
         TutorialStep(
             title: "Calendar Navigation",
-            description: "• Dates are color coded by practice intensity or competition performance\n• Icons show lifts , competitions, and rest days \n• Double tap any date to add or view an event",
+            description: "• Dates are color coded by practice intensity or competition performance\n• Icons show lifts and competitions \n• Double tap any date to add or view an event",
             icon: "calendar",
             images: ["calendar_tutorial"],
             action: nil

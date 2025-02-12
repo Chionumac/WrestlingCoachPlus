@@ -193,16 +193,30 @@ struct AddPracticeView: View {
                 }
             }
             .sheet(isPresented: $showingTemplates) {
-                TemplateListView(
-                    date: date,
+                PracticeTemplateView(
                     viewModel: viewModel,
+                    date: date,
                     onSelect: { template in
+                        // Create a new date by combining the selected date with template's time
+                        let calendar = Calendar.current
+                        let timeComponents = calendar.dateComponents([.hour, .minute], from: template.practiceTime)
+                        let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
+                        let combinedDate = calendar.date(from: DateComponents(
+                            year: dateComponents.year,
+                            month: dateComponents.month,
+                            day: dateComponents.day,
+                            hour: timeComponents.hour,
+                            minute: timeComponents.minute
+                        )) ?? date
+                        
                         let practice = Practice(
-                            date: date,
+                            date: combinedDate,  // Use combined date
                             type: .regular,
                             sections: template.sections,
                             intensity: template.intensity,
-                            isFromTemplate: true
+                            isFromTemplate: true,
+                            includesLift: template.includesLift,
+                            liveTimeMinutes: template.liveTimeMinutes
                         )
                         viewModel.savePractice(practice)
                         showingTemplates = false

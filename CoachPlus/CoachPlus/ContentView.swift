@@ -19,43 +19,31 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack {
-                // Background gradient
-                LinearGradient(
-                    colors: [
-                        Color(.systemBackground),
-                        Color(.systemBackground),
-                        Color(.systemGray6)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
-                
-            VStack(spacing: 0) {
-                // Calendar View
-                CalendarView(
-                    selectedDate: $viewModel.selectedDate,
+            MainLayout(content: AnyView(
+                VStack(spacing: 0) {
+                    // Calendar View
+                    CalendarView(
+                        selectedDate: $viewModel.selectedDate,
                         showingAddPractice: $showingAddPractice,
                         showingPracticeDetails: $showingPracticeDetails,
-                    practices: viewModel.practices
-                )
+                        practices: viewModel.practices
+                    )
                     .frame(height: UIScreen.main.bounds.height * 0.48)
                     .padding(.top)
                     
-                    // Stats Bar - decreased height
+                    // Stats Bar
                     StatsBar(
                         practices: viewModel.practices,
                         selectedDate: viewModel.selectedDate
                     )
-                    .frame(height: 170) // Reduced from 200
+                    .frame(height: 170)
                     .padding(.vertical, 4)
                     
-                    Spacer(minLength: 10) // Reduced from 20
+                    Spacer(minLength: 10)
                     
-                    // Quick View - will now have more space
+                    // Quick View
                     ScrollView {
-                QuickViewContainer(
+                        QuickViewContainer(
                             practice: viewModel.practiceForDate(viewModel.selectedDate),
                             onTap: {
                                 if viewModel.practiceForDate(viewModel.selectedDate) != nil {
@@ -66,50 +54,16 @@ struct ContentView: View {
                         .padding(.vertical)
                     }
                 }
-            }
+            ))
             .navigationTitle("COACH+")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Image("AppLogo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 28)
-                }
-                
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(action: { showingMonthlyFocus = true }) {
-                        Label("Monthly Focus", systemImage: "target")
-                            .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(.blue)
-                    }
-                }
-                
-                ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button(action: { showingSearchSheet = true }) {
-                            Label("Search", systemImage: "magnifyingglass")
-                        }
-                        
-                        Button(action: { showingDefaultTimeSetting = true }) {
-                            Label("Set Default Time", systemImage: "clock")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis.circle.fill")
-                            .font(.title2)
-                            .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(.blue)
-                            .shadow(color: .blue.opacity(0.3), radius: 4)
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showingTutorial = true
-                    } label: {
-                        Image(systemName: "questionmark.circle")
-                    }
-                }
+                CoachPlusToolbar(
+                    showingMonthlyFocus: $showingMonthlyFocus,
+                    showingSearchSheet: $showingSearchSheet,
+                    showingDefaultTimeSetting: $showingDefaultTimeSetting,
+                    showingTutorial: $showingTutorial
+                )
             }
             .sheet(isPresented: $showingAddPractice) {
                 AddPracticeView(

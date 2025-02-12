@@ -122,11 +122,14 @@ class PracticeViewModel: ObservableObject {
         )
     }
     
-    func saveTemplate(name: String, sections: [String], intensity: Double) {
+    func saveTemplate(name: String, sections: [String], intensity: Double, liveTimeMinutes: Int, includesLift: Bool, practiceTime: Date) {
         let template = PracticeTemplate(
             name: name,
             sections: sections,
-            intensity: intensity
+            intensity: intensity,
+            liveTimeMinutes: liveTimeMinutes,
+            includesLift: includesLift,
+            practiceTime: practiceTime
         )
         templates.append(template)
         // Data is automatically saved due to didSet
@@ -152,5 +155,9 @@ class PracticeViewModel: ObservableObject {
     
     func saveBlock(_ block: PracticeBlock) {
         savedBlocks.append(block)
+    }
+    
+    func deleteTemplate(_ template: PracticeTemplate) {
+        templates.removeAll { $0.id == template.id }
     }
 } 

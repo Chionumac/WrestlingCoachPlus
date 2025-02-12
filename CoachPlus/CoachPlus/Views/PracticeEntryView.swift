@@ -418,9 +418,20 @@ struct PracticeEntryView: View {
                 TextField("Template Name", text: $templateName)
                 Button("Cancel", role: .cancel) { }
                 Button("Save") {
-                    viewModel.saveTemplate(name: templateName, sections: sections, intensity: intensity)
-                    templateName = ""
+                    if !templateName.isEmpty {
+                        viewModel.saveTemplate(
+                            name: templateName,
+                            sections: sections,
+                            intensity: intensity,
+                            liveTimeMinutes: liveTimeMinutes,
+                            includesLift: includesLift,
+                            practiceTime: practiceTime
+                        )
+                        templateName = ""
+                        showingSaveTemplate = false
+                    }
                 }
+                .disabled(templateName.isEmpty)
             } message: {
                 Text("Enter a name for this practice template")
             }
