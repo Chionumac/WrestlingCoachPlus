@@ -194,7 +194,7 @@ struct AddPracticeView: View {
             }
             .sheet(isPresented: $showingTemplates) {
                 PracticeTemplateView(
-                    viewModel: viewModel,
+                    viewModel: viewModel.templateViewModel,
                     date: date,
                     onSelect: { template in
                         // Create a new date by combining the selected date with template's time

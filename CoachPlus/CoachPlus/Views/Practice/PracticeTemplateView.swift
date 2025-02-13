@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct PracticeTemplateView: View {
-    @ObservedObject var viewModel: PracticeViewModel
+    @ObservedObject var viewModel: TemplateViewModel
     @Environment(\.dismiss) private var dismiss
     let date: Date
     let onSelect: (PracticeTemplate) -> Void
@@ -113,7 +113,7 @@ struct PracticeTemplateView: View {
 
 #Preview {
     PracticeTemplateView(
-        viewModel: PracticeViewModel(),
+        viewModel: TemplateViewModel(),
         date: Date(),
         onSelect: { _ in }
     )
