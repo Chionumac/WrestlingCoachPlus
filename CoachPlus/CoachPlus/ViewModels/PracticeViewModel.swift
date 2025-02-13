@@ -6,6 +6,7 @@ class PracticeViewModel: ObservableObject {
     @Published var practices: [Practice] = [] {
         didSet {
             savePractices()
+            statsViewModel.updatePractices(practices)  // Update stats when practices change
         }
     }
     @AppStorage("defaultPracticeTime") var defaultPracticeTime: Date = Calendar.current.date(from: DateComponents(hour: 15, minute: 30)) ?? Date()
@@ -20,10 +21,12 @@ class PracticeViewModel: ObservableObject {
     
     let templateViewModel = TemplateViewModel()
     let monthlyFocusViewModel = MonthlyFocusViewModel()
+    let statsViewModel = StatsViewModel()  // Add StatsViewModel
     
     init() {
         loadPractices()
         loadSavedBlocks()
+        statsViewModel.updatePractices(practices)  // Initialize stats with current practices
     }
     
     private func loadPractices() {
