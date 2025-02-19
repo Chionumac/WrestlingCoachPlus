@@ -136,7 +136,7 @@ struct AddCompetitionView: View {
                             HStack {
                                 Text("Performance")
                                 Spacer()
-                                Text(String(format: "%.0f%%", performanceRating * 100))
+                                Text("\(Int(performanceRating * 10))/10")
                                     .foregroundStyle(.secondary)
                             }
                             

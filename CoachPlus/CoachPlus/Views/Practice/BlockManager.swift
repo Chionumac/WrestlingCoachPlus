@@ -18,7 +18,8 @@ class BlockManager: ObservableObject {
         )
         
         if let index = index {
-            blocks.insert(newBlock, at: index)
+            // Insert the new block after the specified index
+            blocks.insert(newBlock, at: index + 1)
         } else {
             blocks.append(newBlock)
         }
