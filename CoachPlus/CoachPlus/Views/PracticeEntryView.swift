@@ -1,5 +1,7 @@
 import SwiftUI
 
+//testing out a comment
+
 struct PracticeBlock: Identifiable, Codable {
     var id = UUID()
     var title: String = ""
