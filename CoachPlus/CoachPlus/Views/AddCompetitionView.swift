@@ -25,6 +25,8 @@ struct AddCompetitionView: View {
     @State private var selectedDates: Set<Date> = []
     @State private var showingDatePicker = false
     @State private var showingDeleteConfirmation = false
+    @State private var isDeleting = false
+    @State private var isDismissing = false
     
     init(
         date: Date,
@@ -271,10 +273,22 @@ struct AddCompetitionView: View {
             }
             .presentationDetents([.medium])
         }
-        .interactiveDismissDisabled()
+        .presentationDetents([.large])
+        .interactiveDismissDisabled(false)
         .onDisappear {
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
-                                         to: nil, from: nil, for: nil)
+            if !name.isEmpty && !isDeleting {
+                savePractice()
+                onSave()
+            }
+        }
+        .onChange(of: presentationMode.wrappedValue.isPresented) { oldValue, newValue in
+            if !newValue && !isDismissing {
+                isDismissing = true
+                if !name.isEmpty && !isDeleting {
+                    savePractice()
+                    onSave()
+                }
+            }
         }
     }
     
