@@ -34,6 +34,7 @@ struct PracticeEntryView: View {
     @State private var selectedBlockId: UUID? = nil
     @State private var isDeleting = false
     @State private var isDismissing = false
+    @State private var showingTemplateSavedMessage = false
     
     init(
         date: Date,
@@ -431,6 +432,10 @@ struct PracticeEntryView: View {
                         )
                         templateName = ""
                         showingSaveTemplate = false
+                        showingTemplateSavedMessage = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            showingTemplateSavedMessage = false
+                        }
                     }
                 }
                 .disabled(templateName.isEmpty)
@@ -485,6 +490,24 @@ struct PracticeEntryView: View {
                     }
                 }
             }
+            .overlay(alignment: .top) {
+                if showingTemplateSavedMessage {
+                    Text("Template Saved!")
+                        .font(.system(.subheadline, design: .rounded, weight: .medium))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(
+                            Capsule()
+                                .fill(.green)
+                                .shadow(radius: 4)
+                        )
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(1)
+                        .padding(.top, 8)
+                }
+            }
+            .animation(.spring(duration: 0.5), value: showingTemplateSavedMessage)
         }
         .presentationDetents([.large])
         .interactiveDismissDisabled(false)

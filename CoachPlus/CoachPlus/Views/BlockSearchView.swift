@@ -33,13 +33,13 @@ struct BlockSearchView: View {
                         onSelect(block)
                         dismiss()
                     }
-                }
-                .onDelete { indexSet in
-                    // Convert filtered indices to source indices
-                    let blocksToDelete = indexSet.map { filteredBlocks[$0] }
-                    for block in blocksToDelete {
-                        if let index = viewModel.savedBlocks.firstIndex(where: { $0.id == block.id }) {
-                            viewModel.savedBlocks.remove(at: index)
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            if let index = viewModel.savedBlocks.firstIndex(where: { $0.id == block.id }) {
+                                viewModel.savedBlocks.remove(at: index)
+                            }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
                         }
                     }
                 }
