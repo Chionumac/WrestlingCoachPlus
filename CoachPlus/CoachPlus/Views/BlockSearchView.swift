@@ -21,33 +21,28 @@ struct BlockSearchView: View {
         NavigationStack {
             List {
                 ForEach(filteredBlocks) { block in
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(block.title)
-                            .font(.headline)
-                        Text(block.content)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        onSelect(block)
-                        dismiss()
-                    }
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
+                    BlockListItem(
+                        block: block,
+                        onSelect: {
+                            onSelect(block)
+                            dismiss()
+                        },
+                        onDelete: {
                             if let index = viewModel.savedBlocks.firstIndex(where: { $0.id == block.id }) {
                                 viewModel.savedBlocks.remove(at: index)
                             }
-                        } label: {
-                            Label("Delete", systemImage: "trash")
                         }
-                    }
+                    )
                 }
             }
             .searchable(text: $searchText, prompt: "Search blocks")
             .navigationTitle("Saved Blocks")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Saved Blocks")
+                        .navigationTitleStyle()
+                }
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") { dismiss() }
                 }
