@@ -113,7 +113,11 @@ struct AddCompetitionView: View {
                 
                 Section {
                     VStack(spacing: 16) {
-                        RatingSliderView(rating: $performanceRating, title: "Performance")
+                        IntensitySlider(
+                            intensity: $performanceRating,
+                            title: "Performance",
+                            style: .performance
+                        )
                         
                         // Save button
                         Button("Save Competition") {
@@ -129,30 +133,10 @@ struct AddCompetitionView: View {
             .listSectionSpacing(.compact)
         }
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button("Back") {
-                    presentationMode.wrappedValue.dismiss()
-                }
-            }
-            
-            ToolbarItem(placement: .principal) {
-                Text(editingPractice == nil ? "Add Competition" : "Edit Competition")
-                    .navigationTitleStyle()
-            }
-            
-            ToolbarItem(placement: .keyboard) {
-                Button(action: {
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
-                                                 to: nil, from: nil, for: nil)
-                }) {
-                    Image(systemName: "keyboard.chevron.compact.down")
-                        .foregroundStyle(.blue)
-                }
-            }
-            
-            ToolbarItem(placement: .primaryAction) {
-                if editingPractice != nil {
+        .standardToolbar(
+            title: editingPractice == nil ? "Add Competition" : "Edit Competition",
+            trailing: editingPractice != nil ? ToolbarItem(placement: .primaryAction) {
+                AnyView(
                     Menu {
                         Button(role: .destructive) {
                             showingDeleteConfirmation = true
@@ -166,24 +150,9 @@ struct AddCompetitionView: View {
                             .foregroundStyle(.blue)
                             .shadow(color: .blue.opacity(0.3), radius: 4)
                     }
-                }
-            }
-        }
-        .deleteConfirmation(
-            title: "Delete Competition",
-            message: "Are you sure you want to delete this competition? This action cannot be undone.",
-            isPresented: $showingDeleteConfirmation
-        ) {
-            isDeleting = true
-            if editingPractice != nil {
-                // Delete all dates for this competition
-                for date in selectedDates {
-                    viewModel.deletePractice(for: date)
-                }
-            }
-            onSave()
-            dismiss()
-        }
+                )
+            } : nil
+        )
         .sheet(isPresented: $showingDatePicker) {
             NavigationStack {
                 MultiDatePicker(selectedDates: $selectedDates)

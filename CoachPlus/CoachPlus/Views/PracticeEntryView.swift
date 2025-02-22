@@ -124,205 +124,33 @@ struct PracticeEntryView: View {
                     ScrollView {
                         VStack(spacing: 16) {
                             // Practice Summary section
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Practice Summary")
-                                    .font(.headline)
-                                    .frame(maxWidth: .infinity, alignment: .center)
-                                    .padding(.horizontal)
-                                
-                                TextField("Enter practice summary...", text: $summary)
-                                    .textFieldStyle(.roundedBorder)
-                                    .multilineTextAlignment(.center)
-                                    .padding(.horizontal)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 6)
-                                            .stroke(showingSummaryError ? .red : .clear, lineWidth: 2)
-                                    )
-                                    .onChange(of: summary) { _, _ in
-                                        showingSummaryError = false
-                                    }
-                                
-                                if showingSummaryError {
-                                    Text("Please enter a practice summary")
-                                        .font(.caption)
-                                        .foregroundStyle(.red)
-                                        .padding(.horizontal)
-                                }
-                            }
-                            .padding(.vertical, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color(.systemBackground))
-                                    .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
+                            SummaryField(
+                                text: $summary,
+                                showError: $showingSummaryError,
+                                title: "Practice Summary",
+                                placeholder: "Enter practice summary..."
                             )
-                            .padding(.horizontal)
                             
                             // Practice Blocks
-                            VStack(alignment: .leading, spacing: 8) {
-                                LazyVGrid(columns: [
-                                    GridItem(.flexible(), spacing: 12),
-                                    GridItem(.flexible(), spacing: 12)
-                                ], spacing: 12) {
-                                    ForEach($blocks) { $block in
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            HStack {
-                                                TextField("Block Title", text: $block.title)
-                                                    .font(.subheadline)
-                                                    .textFieldStyle(.plain)
-                                                    .foregroundStyle(.secondary)
-                                                    .padding(.vertical, 6)
-                                                    .padding(.horizontal, 12)
-                                                    .background(
-                                                        RoundedRectangle(cornerRadius: 8)
-                                                            .fill(Color(.systemGray6))
-                                                    )
-                                                
-                                                Menu {
-                                                    Button(action: {
-                                                        viewModel.saveBlock(block)
-                                                    }) {
-                                                        Label("Save Block", systemImage: "square.and.arrow.down")
-                                                    }
-                                                    
-                                                    Button(action: {
-                                                        selectedBlockId = block.id
-                                                        showingBlockSearch = true
-                                                    }) {
-                                                        Label("Search Blocks", systemImage: "magnifyingglass")
-                                                    }
-                                                    
-                                                    Button(action: {
-                                                        if let index = blocks.firstIndex(where: { $0.id == block.id }) {
-                                                            blocks.insert(PracticeBlock(), at: index + 1)
-                                                        }
-                                                    }) {
-                                                        Label("Insert Block", systemImage: "plus.rectangle.on.rectangle")
-                                                    }
-                                                    
-                                                    Button(role: .destructive) {
-                                                        blocks.removeAll { $0.id == block.id }
-                                                        if blocks.isEmpty {
-                                                            blocks.append(PracticeBlock())
-                                                        }
-                                                    } label: {
-                                                        Label("Delete Block", systemImage: "trash")
-                                                    }
-                                                } label: {
-                                                    Image(systemName: "ellipsis.circle")
-                                                        .font(.title3)
-                                                        .foregroundStyle(.secondary)
-                                                }
-                                            }
-                                            .padding(.horizontal, 8)
-                                            
-                                            TextEditor(text: $block.content)
-                                                .frame(height: 100)
-                                                .padding(6)
-                                                .background(
-                                                    RoundedRectangle(cornerRadius: 8)
-                                                        .fill(Color.black.opacity(0.05))
-                                                )
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 8)
-                                                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                                                )
-                                                .padding(.horizontal, 8)
-                                        }
-                                        .padding(.vertical, 4)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(Color(.systemBackground))
-                                                .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
-                                        )
-                                    }
-                                }
-                                .padding(.horizontal, 8)
-                                
-                                // Add Block Button
-                                Button(action: {
-                                    blocks.append(PracticeBlock())
-                                }) {
-                                    HStack {
-                                        Image(systemName: "plus.circle.fill")
-                                        Text("Add Block")
-                                    }
-                                    .foregroundStyle(.blue)
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                                    )
-                                }
-                                .padding(.horizontal)
-                            }
+                            BlockEditorGrid(
+                                blocks: $blocks,
+                                selectedBlockId: $selectedBlockId,
+                                showingBlockSearch: $showingBlockSearch,
+                                viewModel: viewModel
+                            )
                             
                             // Live Time Selector
-                            VStack(spacing: 16) {
-                                HStack {
-                                    Text("Live Minutes")
-                                        .font(.headline)
-                                    
-                                    Spacer()
-                                    
-                                    Picker("", selection: $liveTimeMinutes) {
-                                        ForEach(0...60, id: \.self) { minutes in
-                                            Text(minutes == 0 ? "None" : "\(minutes) min")
-                                                .tag(minutes)
-                                                .frame(maxWidth: .infinity, alignment: .trailing)
-                                        }
-                                    }
-                                    .frame(width: 100)
-                                    .tint(.gray)
-                                    .labelsHidden()
-                                }
-                                .padding(.horizontal)
-                                
-                                // Lift Toggle
-                                Toggle(isOn: $includesLift) {
-                                    Text("Lift")
-                                        .font(.headline)
-                                }
-                                .padding(.horizontal)
-                                .tint(.orange)
-                            }
-                            .padding(.vertical, 8)
+                            PracticeSettings(
+                                liveTimeMinutes: $liveTimeMinutes,
+                                includesLift: $includesLift
+                            )
                             
                             // Intensity slider section with save button
-                            VStack(spacing: 8) {
-                                HStack {
-                                    Text("Practice Intensity")
-                                        .font(.headline)
-                                    Spacer()
-                                    Text("\(Int(intensity * 10))/10")
-                                        .font(.headline)
-                                        .foregroundStyle(.secondary)
-                                }
-                                
-                                HStack(spacing: 12) {
-                                    Text("1")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.blue)
-                                    
-                                    Slider(value: $intensity, in: 0...1, step: 0.1) { _ in
-                                        // Round to nearest 0.1 after sliding
-                                        intensity = round(intensity * 10) / 10
-                                    }
-                                    .tint(
-                                        Color(
-                                            hue: max(0, min(0.3, 0.3 - (intensity * 0.3))),  // Goes from green (0.3) to red (0.0)
-                                            saturation: 0.7,
-                                            brightness: 0.7
-                                        )
-                                    )
-                                    
-                                    Text("10")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.green)
-                                }
-                            }
-                            .padding()
-                            .background(Color(.systemBackground))
+                            IntensitySlider(
+                                intensity: $intensity,
+                                title: "Practice Intensity",
+                                style: .intensity
+                            )
                             
                             // Save button
                             Button("Save Practice") {
@@ -352,96 +180,43 @@ struct PracticeEntryView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Back") { 
-                        dismiss() 
-                    }
-                }
-                
-                ToolbarItem(placement: .principal) {
-                    Text(editingPractice == nil ? "New Practice" : "Edit Practice")
-                        .font(.system(.title3, design: .rounded, weight: .heavy))
-                        .tracking(2)
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.blue, .green.opacity(0.7)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                }
-                
-                ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button {
-                            showingRecurrenceOptions = true
-                        } label: {
-                            Label("Repeat", systemImage: "repeat")
-                        }
-                        
-                        Button {
-                            showingSaveTemplate = true
-                        } label: {
-                            Label("Save as Template", systemImage: "doc.badge.plus")
-                        }
-                        
-                        if editingPractice != nil {
-                            Button(role: .destructive) {
-                                isDeleting = true
-                                viewModel.deletePractice(for: date)
-                                onSave()
-                                dismiss()
+            .standardToolbar(
+                title: editingPractice == nil ? "New Practice" : "Edit Practice",
+                trailing: ToolbarItem(placement: .primaryAction) {
+                    AnyView(
+                        Menu {
+                            Button {
+                                showingRecurrenceOptions = true
                             } label: {
-                                Label("Delete Practice", systemImage: "trash")
+                                Label("Repeat", systemImage: "repeat")
                             }
+                            
+                            Button {
+                                showingSaveTemplate = true
+                            } label: {
+                                Label("Save as Template", systemImage: "doc.badge.plus")
+                            }
+                            
+                            if editingPractice != nil {
+                                Button(role: .destructive) {
+                                    isDeleting = true
+                                    viewModel.deletePractice(for: date)
+                                    onSave()
+                                    dismiss()
+                                } label: {
+                                    Label("Delete Practice", systemImage: "trash")
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle.fill")
+                                .font(.title2)
+                                .symbolRenderingMode(.hierarchical)
+                                .foregroundStyle(.blue)
+                                .shadow(color: .blue.opacity(0.3), radius: 4)
                         }
-                    } label: {
-                        Image(systemName: "ellipsis.circle.fill")
-                            .font(.title2)
-                            .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(.blue)
-                            .shadow(color: .blue.opacity(0.3), radius: 4)
-                    }
+                    )
                 }
-                
-                ToolbarItem(placement: .keyboard) {
-                    Button(action: {
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
-                                                     to: nil, from: nil, for: nil)
-                    }) {
-                        Image(systemName: "keyboard.chevron.compact.down")
-                            .foregroundStyle(.blue)
-                    }
-                }
-            }
-            .alert("Save as Template", isPresented: $showingSaveTemplate) {
-                TextField("Template Name", text: $templateName)
-                Button("Cancel", role: .cancel) { }
-                Button("Save") {
-                    if !templateName.isEmpty {
-                        viewModel.saveTemplate(
-                            name: templateName,
-                            sections: sections,
-                            intensity: intensity,
-                            liveTimeMinutes: liveTimeMinutes,
-                            includesLift: includesLift,
-                            practiceTime: practiceTime
-                        )
-                        templateName = ""
-                        showingSaveTemplate = false
-                        showingTemplateSavedMessage = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            showingTemplateSavedMessage = false
-                        }
-                    }
-                }
-                .disabled(templateName.isEmpty)
-            } message: {
-                Text("Enter a name for this practice template")
-            }
+            )
             .sheet(isPresented: $showingRecurrenceOptions) {
                 NavigationStack {
                     Form {

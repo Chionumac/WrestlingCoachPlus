@@ -35,18 +35,11 @@ struct BlockSearchView: View {
                     )
                 }
             }
+            .formSectionStyle()
             .searchable(text: $searchText, prompt: "Search blocks")
             .navigationTitle("Saved Blocks")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("Saved Blocks")
-                        .navigationTitleStyle()
-                }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
-                }
-            }
+            .standardToolbar(title: "Saved Blocks")
         }
     }
 } 
