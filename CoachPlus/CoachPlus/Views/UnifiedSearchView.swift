@@ -27,7 +27,7 @@ struct UnifiedSearchView: View {
         let filteredByType = results.filter { practice in
             switch selectedFilter {
             case .all: return true
-            case .practices: return practice.type == .regular
+            case .practices: return practice.type == .practice
             case .competitions: return practice.type == .competition
             }
         }

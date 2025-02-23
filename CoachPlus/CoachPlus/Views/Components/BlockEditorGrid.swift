@@ -28,10 +28,13 @@ struct BlockEditorGrid: View {
                             
                             Menu {
                                 Button(action: {
-                                    viewModel.saveBlock(block)
+                                    if block.isValid {
+                                        viewModel.saveBlock(block)
+                                    }
                                 }) {
                                     Label("Save Block", systemImage: "square.and.arrow.down")
                                 }
+                                .disabled(!block.isValid)
                                 
                                 Button(action: {
                                     selectedBlockId = block.id

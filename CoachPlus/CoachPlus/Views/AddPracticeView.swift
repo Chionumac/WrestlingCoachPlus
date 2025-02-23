@@ -211,7 +211,7 @@ struct AddPracticeView: View {
                         
                         let practice = Practice(
                             date: combinedDate,  // Use combined date
-                            type: .regular,
+                            type: .practice,
                             sections: template.sections,
                             intensity: template.intensity,
                             isFromTemplate: true,

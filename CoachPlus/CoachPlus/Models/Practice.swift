@@ -1,20 +1,5 @@
 import Foundation
 
-enum PracticeType: String, Codable {
-    case regular = "Regular Practice"
-    case competition = "Competition"
-    case rest = "Rest Day"
-    
-    var defaultSections: [String] {
-        switch self {
-        case .rest:
-            return ["Rest Day"]
-        case .regular, .competition:
-            return [""]
-        }
-    }
-}
-
 struct Practice: Identifiable, Codable {
     let id: UUID
     let date: Date
@@ -47,10 +32,21 @@ struct Practice: Identifiable, Codable {
             minute: timeComponents.minute
         )) ?? date
         self.type = type
-        self.sections = sections
+        self.sections = sections.isEmpty ? type.defaultSections : sections
         self.intensity = intensity
         self.isFromTemplate = isFromTemplate
         self.includesLift = includesLift
         self.liveTimeMinutes = liveTimeMinutes
+    }
+}
+
+extension PracticeType {
+    var defaultSections: [String] {
+        switch self {
+        case .rest:
+            return ["Rest Day"]
+        case .practice, .competition:
+            return [""]
+        }
     }
 } 

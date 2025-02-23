@@ -234,7 +234,7 @@ struct EmptyPracticeView: View {
         
         PracticeQuickView(practice: Practice(
             date: Date(),
-            type: .regular,
+            type: .practice,
             sections: ["Warm up", "Main set", "Cool down"],
             intensity: 0.7,
             isFromTemplate: false

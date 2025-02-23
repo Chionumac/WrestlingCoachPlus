@@ -7,12 +7,13 @@ struct BlockListItem: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(block.title)
+            Text(block.displayTitle)
                 .font(.headline)
             Text(block.content)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
+        .opacity(block.isEmpty ? 0.5 : 1.0)
         .contentShape(Rectangle())
         .onTapGesture(perform: onSelect)
         .swipeActions(edge: .trailing) {

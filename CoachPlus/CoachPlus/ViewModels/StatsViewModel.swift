@@ -25,7 +25,7 @@ class StatsViewModel: ObservableObject {
             return practiceMonth == month && practiceYear == year
         }
         
-        let practiceCount = monthPractices.filter { $0.type == .regular }.count
+        let practiceCount = monthPractices.filter { $0.type == .practice }.count
         let restCount = monthPractices.filter { $0.type == .rest }.count
         let competitions = monthPractices.filter { $0.type == .competition }
         let uniqueCompetitions = Set(competitions.compactMap { practice -> String? in

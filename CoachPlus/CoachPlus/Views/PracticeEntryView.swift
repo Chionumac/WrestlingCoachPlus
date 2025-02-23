@@ -2,12 +2,6 @@ import SwiftUI
 
 //testing out a comment
 
-struct PracticeBlock: Identifiable, Codable {
-    var id = UUID()
-    var title: String = ""
-    var content: String = ""
-}
-
 struct PracticeEntryView: View {
     let date: Date
     @Environment(\.dismiss) private var dismiss
@@ -40,7 +34,7 @@ struct PracticeEntryView: View {
         date: Date,
         viewModel: PracticeViewModel,
         editingPractice: Practice? = nil,
-        practiceType: PracticeType = .regular,
+        practiceType: PracticeType = .practice,
         onSave: @escaping () -> Void = {}
     ) {
         self.date = date
@@ -320,56 +314,25 @@ struct PracticeEntryView: View {
     }
     
     private func savePractice() {
-        // Convert blocks to sections
-        var allSections = [String]()
+        let blockSections = blocks
+            .filter { !$0.isEmpty }  // Using new isEmpty property
+            .map { $0.formattedForPractice() }  // Using new formatting method
         
-        // Add summary as first section
-        if !summary.isEmpty {
-            allSections.append(summary)
-        }
-        
-        // Add blocks - modified to include blocks with only titles
-        let blockSections = blocks.compactMap { block -> String? in
-            if block.title.isEmpty && block.content.isEmpty { return nil }
-            return block.title.isEmpty ? block.content : "\(block.title): \(block.content)"
-        }
-        allSections.append(contentsOf: blockSections)
-        
-        // Combine date and time components
-        let calendar = Calendar.current
-        let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
-        let timeComponents = calendar.dateComponents([.hour, .minute], from: practiceTime)
-        let combinedDate = calendar.date(from: DateComponents(
-            year: dateComponents.year,
-            month: dateComponents.month,
-            day: dateComponents.day,
-            hour: timeComponents.hour,
-            minute: timeComponents.minute
-        )) ?? date
+        let sections = [summary] + blockSections
         
         let practice = Practice(
             id: editingPractice?.id ?? UUID(),
-            date: combinedDate,
+            date: practiceTime,
             type: practiceType,
-            sections: allSections,
-            intensity: practiceType == .rest ? 0.0 : intensity,
-            isFromTemplate: editingPractice?.isFromTemplate ?? false,
+            sections: sections,
+            intensity: intensity,
+            isFromTemplate: false,
             includesLift: includesLift,
             liveTimeMinutes: liveTimeMinutes
         )
         
-        // Save the practice
         viewModel.savePractice(practice)
-        
-        // Handle recurring practices if needed
-        if recurrencePattern != .none {
-            saveRecurringPractices()
-        }
-        
-        // Call onSave callback
         onSave()
-        
-        // Dismiss the view
         dismiss()
     }
     
