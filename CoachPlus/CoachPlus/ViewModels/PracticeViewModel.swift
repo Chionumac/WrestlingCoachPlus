@@ -1,12 +1,30 @@
 import Foundation
 import SwiftUI
 
+// Add loading and error states
+enum PracticeViewState {
+    case idle
+    case loading
+    case error(Error)
+    case success
+}
+
+// Add error types
+enum PracticeError: Error {
+    case invalidDate
+    case invalidSections
+    case saveFailed
+    case loadFailed
+    case deleteFailed
+}
+
 class PracticeViewModel: ObservableObject {
+    @Published private(set) var state: PracticeViewState = .idle
     @Published var selectedDate: Date = Date()
     @Published var practices: [Practice] = [] {
         didSet {
-            savePractices()
-            statsViewModel.updatePractices(practices)  // Update stats when practices change
+            // Only need to update stats now
+            statsViewModel.updatePractices(practices)
         }
     }
     @AppStorage("defaultPracticeTime") var defaultPracticeTime: Date = Calendar.current.date(from: DateComponents(hour: 15, minute: 30)) ?? Date()
@@ -16,33 +34,25 @@ class PracticeViewModel: ObservableObject {
         }
     }
     
-    private let practicesKey = "savedPractices"
     private let savedBlocksKey = "savedBlocks"
     
     let templateViewModel = TemplateViewModel()
     let monthlyFocusViewModel = MonthlyFocusViewModel()
     let statsViewModel = StatsViewModel()  // Add StatsViewModel
     
+    // Add practice manager
+    private let practiceManager = PracticeManager()
+    
     init() {
-        loadPractices()
+        // Load initial practices from manager
+        practices = practiceManager.getPractices()
         loadSavedBlocks()
-        statsViewModel.updatePractices(practices)  // Initialize stats with current practices
-    }
-    
-    private func loadPractices() {
-        if let data = UserDefaults.standard.data(forKey: practicesKey) {
-            if let decoded = try? JSONDecoder().decode([Practice].self, from: data) {
-                practices = decoded
-                return
-            }
-        }
-        practices = []
-    }
-    
-    private func savePractices() {
-        if let encoded = try? JSONEncoder().encode(practices) {
-            UserDefaults.standard.set(encoded, forKey: practicesKey)
-        }
+        statsViewModel.updatePractices(practices)
+        
+        // Debug: Compare loaded practices
+        let managerPractices = practiceManager.getPractices()
+        print("📊 Existing practices count:", practices.count)
+        print("📊 Manager practices count:", managerPractices.count)
     }
     
     private func loadSavedBlocks() {
@@ -61,24 +71,39 @@ class PracticeViewModel: ObservableObject {
         }
     }
     
-    func savePractice(_ practice: Practice) {
-        // Add debug print
-        print("ViewModel saving practice:", practice)
-        
-        // Remove any existing practice for this date
-        practices.removeAll { Calendar.current.isDate($0.date, inSameDayAs: practice.date) }
-        
-        // Add the new practice
-        practices.append(practice)
-        
-        // Add debug print
-        print("Current practices count:", practices.count)
-        
-        // Data is automatically saved due to didSet
+    // Update methods to handle states
+    func createPractice(
+        date: Date,
+        time: Date,
+        type: PracticeType,
+        sections: [String],
+        intensity: Double,
+        isFromTemplate: Bool = false,
+        includesLift: Bool = false,
+        liveTimeMinutes: Int = 0
+    ) {
+        state = .loading
+        do {
+            try practiceManager.createPractice(
+                date: date,
+                time: time,
+                type: type,
+                sections: sections,
+                intensity: intensity,
+                isFromTemplate: isFromTemplate,
+                includesLift: includesLift,
+                liveTimeMinutes: liveTimeMinutes
+            )
+            practices = practiceManager.getPractices()
+            state = .success
+        } catch {
+            state = .error(error)
+        }
     }
     
+    // Update practiceForDate to use manager
     func practiceForDate(_ date: Date) -> Practice? {
-        practices.first { Calendar.current.isDate($0.date, inSameDayAs: date) }
+        practiceManager.practiceForDate(date)
     }
     
     func intensityColor(for intensity: Double) -> Color {
@@ -125,8 +150,47 @@ class PracticeViewModel: ObservableObject {
         savedBlocks.append(block)
     }
     
+    // Update deletePractice to be cleaner
     func deletePractice(for date: Date) {
-        practices.removeAll { Calendar.current.isDate($0.date, inSameDayAs: date) }
-        // Data is automatically saved due to didSet
+        practiceManager.deletePractice(for: date)
+        practices = practiceManager.getPractices()
+    }
+    
+    // Add createRecurringPractices wrapper
+    func createRecurringPractices(
+        startDate: Date,
+        endDate: Date,
+        pattern: RecurrencePattern,
+        time: Date,
+        type: PracticeType,
+        sections: [String],
+        intensity: Double,
+        includesLift: Bool,
+        liveTimeMinutes: Int
+    ) {
+        state = .loading
+        do {
+            try practiceManager.createRecurringPractices(
+                startDate: startDate,
+                endDate: endDate,
+                pattern: pattern,
+                time: time,
+                type: type,
+                sections: sections,
+                intensity: intensity,
+                includesLift: includesLift,
+                liveTimeMinutes: liveTimeMinutes
+            )
+            practices = practiceManager.getPractices()
+            state = .success
+        } catch {
+            state = .error(error)
+        }
+    }
+    
+    // Add this method back
+    func savePractice(_ practice: Practice) {
+        practiceManager.savePractice(practice)
+        practices = practiceManager.getPractices()
     }
 } 
