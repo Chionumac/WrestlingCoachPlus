@@ -277,6 +277,13 @@ struct PracticeEntryView: View {
                 }
             }
             .animation(.spring(duration: 0.5), value: showingTemplateSavedMessage)
+            .alert("Save as Template", isPresented: $showingSaveTemplate) {
+                TextField("Template Name", text: $templateName)
+                Button("Save", action: saveAsTemplate)
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("Enter a name for this template")
+            }
         }
         .presentationDetents([.large])
         .interactiveDismissDisabled(false)
@@ -301,12 +308,33 @@ struct PracticeEntryView: View {
         var currentDate = date
         while let nextDate = recurrencePattern.nextDate(from: currentDate),
               nextDate <= recurrenceEndDate {
+            // Fix date handling for recurring practices
+            let calendar = Calendar.current
+            let dateComponents = calendar.dateComponents([.year, .month, .day], from: nextDate)
+            let timeComponents = calendar.dateComponents([.hour, .minute], from: practiceTime)
+            let combinedDate = calendar.date(from: DateComponents(
+                year: dateComponents.year,
+                month: dateComponents.month,
+                day: dateComponents.day,
+                hour: timeComponents.hour,
+                minute: timeComponents.minute
+            )) ?? nextDate
+            
+            // Create sections from blocks and summary
+            let blockSections = blocks
+                .filter { !$0.isEmpty }
+                .map { $0.formattedForPractice() }
+            
+            let sections = [summary] + blockSections
+            
             let practice = Practice(
-                date: nextDate,
+                date: combinedDate,
                 type: practiceType,
-                sections: sections,
+                sections: sections,  // Use the newly created sections
                 intensity: intensity,
-                isFromTemplate: false
+                isFromTemplate: false,
+                includesLift: includesLift,
+                liveTimeMinutes: liveTimeMinutes
             )
             viewModel.savePractice(practice)
             currentDate = nextDate
@@ -314,15 +342,30 @@ struct PracticeEntryView: View {
     }
     
     private func savePractice() {
+        // Only save if not already saving
+        if isDismissing || isDeleting { return }
+        
         let blockSections = blocks
-            .filter { !$0.isEmpty }  // Using new isEmpty property
-            .map { $0.formattedForPractice() }  // Using new formatting method
+            .filter { !$0.isEmpty }
+            .map { $0.formattedForPractice() }
         
         let sections = [summary] + blockSections
         
+        // Fix date handling
+        let calendar = Calendar.current
+        let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: practiceTime)
+        let combinedDate = calendar.date(from: DateComponents(
+            year: dateComponents.year,
+            month: dateComponents.month,
+            day: dateComponents.day,
+            hour: timeComponents.hour,
+            minute: timeComponents.minute
+        )) ?? date
+        
         let practice = Practice(
             id: editingPractice?.id ?? UUID(),
-            date: practiceTime,
+            date: combinedDate,
             type: practiceType,
             sections: sections,
             intensity: intensity,
@@ -332,6 +375,13 @@ struct PracticeEntryView: View {
         )
         
         viewModel.savePractice(practice)
+        
+        // Handle recurring practices if pattern is set
+        if recurrencePattern != .none {
+            saveRecurringPractices()
+        }
+        
+        isDismissing = true
         onSave()
         dismiss()
     }
@@ -341,6 +391,31 @@ struct PracticeEntryView: View {
         let lineHeight: CGFloat = 20  // Approximate height per line
         let numberOfLines = text.components(separatedBy: .newlines).count
         return max(baseHeight, CGFloat(numberOfLines) * lineHeight)
+    }
+    
+    // Add debug prints to track the flow
+    private func saveAsTemplate() {
+        print("📝 Attempting to save template: \(templateName)")
+        
+        let blockSections = blocks
+            .filter { !$0.isEmpty }
+            .map { $0.formattedForPractice() }
+        
+        let sections = [summary] + blockSections
+        print("📝 Template sections: \(sections)")
+        
+        viewModel.saveTemplate(
+            name: templateName,
+            sections: sections,
+            intensity: intensity,
+            liveTimeMinutes: liveTimeMinutes,
+            includesLift: includesLift,
+            practiceTime: practiceTime
+        )
+        
+        print("📝 Template saved!")
+        showingSaveTemplate = false
+        showingTemplateSavedMessage = true
     }
 }
 

@@ -62,10 +62,18 @@ class PracticeViewModel: ObservableObject {
     }
     
     func savePractice(_ practice: Practice) {
+        // Add debug print
+        print("ViewModel saving practice:", practice)
+        
         // Remove any existing practice for this date
         practices.removeAll { Calendar.current.isDate($0.date, inSameDayAs: practice.date) }
+        
         // Add the new practice
         practices.append(practice)
+        
+        // Add debug print
+        print("Current practices count:", practices.count)
+        
         // Data is automatically saved due to didSet
     }
     
