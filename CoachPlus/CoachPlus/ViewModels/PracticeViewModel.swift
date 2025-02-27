@@ -1,16 +1,32 @@
 import Foundation
 import SwiftUI
 
-// Add loading and error states
-enum PracticeViewState {
+// Update PracticeViewState to conform to Equatable
+enum PracticeViewState: Equatable {
     case idle
     case loading
     case error(Error)
     case success
+    
+    // Add Equatable conformance for error case
+    static func == (lhs: PracticeViewState, rhs: PracticeViewState) -> Bool {
+        switch (lhs, rhs) {
+        case (.idle, .idle):
+            return true
+        case (.loading, .loading):
+            return true
+        case (.success, .success):
+            return true
+        case (.error(let lhsError), .error(let rhsError)):
+            return lhsError.localizedDescription == rhsError.localizedDescription
+        default:
+            return false
+        }
+    }
 }
 
-// Add error types
-enum PracticeError: Error {
+// Make PracticeError conform to Equatable
+enum PracticeError: Error, Equatable {
     case invalidDate
     case invalidSections
     case saveFailed
@@ -119,8 +135,15 @@ class PracticeViewModel: ObservableObject {
         templateViewModel.templates
     }
     
-    func saveTemplate(name: String, sections: [String], intensity: Double, liveTimeMinutes: Int, includesLift: Bool, practiceTime: Date) {
-        templateViewModel.saveTemplate(
+    func saveTemplate(
+        name: String,
+        sections: [String],
+        intensity: Double,
+        liveTimeMinutes: Int,
+        includesLift: Bool,
+        practiceTime: Date
+    ) {
+        let template = PracticeTemplate(
             name: name,
             sections: sections,
             intensity: intensity,
@@ -128,6 +151,7 @@ class PracticeViewModel: ObservableObject {
             includesLift: includesLift,
             practiceTime: practiceTime
         )
+        templateViewModel.saveTemplate(template)
     }
     
     func deleteTemplate(_ template: PracticeTemplate) {
@@ -192,5 +216,25 @@ class PracticeViewModel: ObservableObject {
     func savePractice(_ practice: Practice) {
         practiceManager.savePractice(practice)
         practices = practiceManager.getPractices()
+    }
+    
+    func createPracticeFromTemplate(_ template: PracticeTemplate, date: Date) {
+        state = .loading
+        do {
+            try practiceManager.createPractice(
+                date: date,
+                time: defaultPracticeTime,
+                type: .practice,
+                sections: template.sections,
+                intensity: template.intensity,
+                isFromTemplate: true,
+                includesLift: template.includesLift,
+                liveTimeMinutes: template.liveTimeMinutes
+            )
+            practices = practiceManager.getPractices()
+            state = .success
+        } catch {
+            state = .error(error)
+        }
     }
 } 

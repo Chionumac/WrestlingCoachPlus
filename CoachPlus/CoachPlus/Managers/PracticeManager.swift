@@ -2,52 +2,31 @@ import Foundation
 
 class PracticeManager {
     // MARK: - Properties
-    private let practicesKey = "savedPractices"
-    private var practices: [Practice] = []
+    private let service: PracticeServiceProtocol
     
     // MARK: - Init
-    init() {
-        practices = loadPractices()
+    init(service: PracticeServiceProtocol = UserDefaultsPracticeService()) {
+        self.service = service
     }
     
     // MARK: - Public Methods
     func getPractices() -> [Practice] {
-        practices
+        service.load()
     }
     
     func savePractice(_ practice: Practice) {
-        // Remove any existing practice for this date
-        practices.removeAll { Calendar.current.isDate($0.date, inSameDayAs: practice.date) }
-        
-        // Add the new practice
-        practices.append(practice)
-        
-        // Save to storage
-        savePractices(practices)
+        try? service.save(practice)
     }
     
     func deletePractice(for date: Date) {
-        practices.removeAll { Calendar.current.isDate($0.date, inSameDayAs: date) }
-        savePractices(practices)
+        service.delete(for: date)
     }
     
-    // MARK: - Private Methods
-    private func loadPractices() -> [Practice] {
-        if let data = UserDefaults.standard.data(forKey: practicesKey),
-           let decoded = try? JSONDecoder().decode([Practice].self, from: data) {
-            return decoded
-        }
-        return []
+    func practiceForDate(_ date: Date) -> Practice? {
+        service.getPractice(for: date)
     }
     
-    private func savePractices(_ practices: [Practice]) {
-        if let encoded = try? JSONEncoder().encode(practices) {
-            UserDefaults.standard.set(encoded, forKey: practicesKey)
-        }
-    }
-}
-
-extension PracticeManager {
+    // Helper method
     func combineDateAndTime(date: Date, time: Date) -> Date {
         let calendar = Calendar.current
         let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
@@ -61,11 +40,7 @@ extension PracticeManager {
         )) ?? date
     }
     
-    func practiceForDate(_ date: Date) -> Practice? {
-        practices.first { Calendar.current.isDate($0.date, inSameDayAs: date) }
-    }
-    
-    // Add practice creation methods
+    // MARK: - Practice Creation Methods
     @discardableResult
     func createPractice(
         date: Date,
@@ -94,7 +69,7 @@ extension PracticeManager {
             liveTimeMinutes: liveTimeMinutes
         )
         
-        savePractice(practice)
+        try service.save(practice)
         return practice
     }
     
@@ -109,10 +84,12 @@ extension PracticeManager {
         includesLift: Bool,
         liveTimeMinutes: Int
     ) throws {
+        var practices: [Practice] = []
         var currentDate = startDate
+        
         while let nextDate = pattern.nextDate(from: currentDate),
               nextDate <= endDate {
-            try createPractice(
+            let practice = try createPractice(
                 date: nextDate,
                 time: time,
                 type: type,
@@ -121,7 +98,10 @@ extension PracticeManager {
                 includesLift: includesLift,
                 liveTimeMinutes: liveTimeMinutes
             )
+            practices.append(practice)
             currentDate = nextDate
         }
+        
+        try service.saveMultiple(practices)
     }
 } 

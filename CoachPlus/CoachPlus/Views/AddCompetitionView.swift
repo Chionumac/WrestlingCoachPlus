@@ -76,6 +76,13 @@ struct AddCompetitionView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            if case .loading = viewModel.state {
+                ProgressView("Saving Competition...")
+                    .padding()
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(10)
+            }
+            
             DateHeaderView(date: date, practiceTime: $practiceTime)
             
             Form {
@@ -190,6 +197,34 @@ struct AddCompetitionView: View {
                 }
             }
         }
+        .overlay {
+            if case .error(let error) = viewModel.state {
+                Text(error.localizedDescription)
+                    .foregroundStyle(.white)
+                    .padding()
+                    .background(.red.opacity(0.8))
+                    .cornerRadius(10)
+                    .padding()
+            }
+        }
+        .overlay(alignment: .top) {
+            if case .success = viewModel.state {
+                Text("Competition Saved!")
+                    .font(.system(.subheadline, design: .rounded, weight: .medium))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule()
+                            .fill(.green)
+                            .shadow(radius: 4)
+                    )
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .zIndex(1)
+                    .padding(.top, 8)
+            }
+        }
+        .animation(.spring(duration: 0.5), value: viewModel.state)
     }
     
     private func savePractice() {

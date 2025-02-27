@@ -1,36 +1,60 @@
 import Foundation
 import SwiftUI
 
-class TemplateViewModel: ObservableObject {
-    @Published var templates: [PracticeTemplate] = [] {
-        didSet {
-            save(templates)
+class TemplateViewModel: ObservableObject, PersistableViewModel {
+    typealias DataType = [PracticeTemplate]
+    
+    let storageKey = "savedTemplates"
+    
+    @Published private(set) var state: PracticeViewState = .idle
+    @Published private(set) var templates: [PracticeTemplate] = []
+    @Published var data: [PracticeTemplate] = []  // Add this if required by protocol
+    
+    private let service: TemplateServiceProtocol
+    
+    init(service: TemplateServiceProtocol = UserDefaultsTemplateService()) {
+        self.service = service
+        loadTemplates()
+    }
+    
+    // MARK: - PersistableViewModel
+    func load() -> [PracticeTemplate]? {
+        service.load()
+    }
+    
+    func save(_ data: [PracticeTemplate]) {
+        for template in data {
+            try? service.save(template)
         }
     }
     
-    internal let storageKey = "savedTemplates"
-    
-    init() {
-        templates = load() ?? []
+    func deleteAll() {
+        try? service.deleteAll()
+        templates.removeAll()
     }
     
-    func saveTemplate(name: String, sections: [String], intensity: Double, liveTimeMinutes: Int, includesLift: Bool, practiceTime: Date) {
-        let template = PracticeTemplate(
-            name: name,
-            sections: sections,
-            intensity: intensity,
-            liveTimeMinutes: liveTimeMinutes,
-            includesLift: includesLift,
-            practiceTime: practiceTime
-        )
-        templates.append(template)
+    // MARK: - Template Operations
+    func loadTemplates() {
+        state = .loading
+        templates = service.load()
+        state = .success
+    }
+    
+    func saveTemplate(_ template: PracticeTemplate) {
+        state = .loading
+        do {
+            try service.save(template)
+            templates = service.load()
+            state = .success
+        } catch {
+            state = .error(error)
+        }
     }
     
     func deleteTemplate(_ template: PracticeTemplate) {
-        templates.removeAll { $0.id == template.id }
+        state = .loading
+        service.delete(template)
+        templates = service.load()
+        state = .success
     }
-}
-
-extension TemplateViewModel: PersistableViewModel {
-    typealias DataType = [PracticeTemplate]
 } 

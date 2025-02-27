@@ -81,6 +81,14 @@ struct PracticeEntryView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                // Add state overlay
+                if case .loading = viewModel.state {
+                    ProgressView("Saving...")
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(10)
+                }
+                
                 // Date subheader
                 HStack {
                     Text(dateFormatter.string(from: date))
@@ -178,36 +186,36 @@ struct PracticeEntryView: View {
                 title: editingPractice == nil ? "New Practice" : "Edit Practice",
                 trailing: ToolbarItem(placement: .primaryAction) {
                     AnyView(
-                        Menu {
-                            Button {
-                                showingRecurrenceOptions = true
-                            } label: {
-                                Label("Repeat", systemImage: "repeat")
-                            }
-                            
-                            Button {
-                                showingSaveTemplate = true
-                            } label: {
-                                Label("Save as Template", systemImage: "doc.badge.plus")
-                            }
-                            
-                            if editingPractice != nil {
-                                Button(role: .destructive) {
-                                    isDeleting = true
-                                    viewModel.deletePractice(for: date)
-                                    onSave()
-                                    dismiss()
-                                } label: {
-                                    Label("Delete Practice", systemImage: "trash")
-                                }
-                            }
+                    Menu {
+                        Button {
+                            showingRecurrenceOptions = true
                         } label: {
-                            Image(systemName: "ellipsis.circle.fill")
-                                .font(.title2)
-                                .symbolRenderingMode(.hierarchical)
-                                .foregroundStyle(.blue)
-                                .shadow(color: .blue.opacity(0.3), radius: 4)
+                            Label("Repeat", systemImage: "repeat")
                         }
+                        
+                        Button {
+                            showingSaveTemplate = true
+                        } label: {
+                            Label("Save as Template", systemImage: "doc.badge.plus")
+                        }
+                        
+                        if editingPractice != nil {
+                            Button(role: .destructive) {
+                                isDeleting = true
+                                viewModel.deletePractice(for: date)
+                                onSave()
+                                dismiss()
+                            } label: {
+                                Label("Delete Practice", systemImage: "trash")
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle.fill")
+                            .font(.title2)
+                            .symbolRenderingMode(.hierarchical)
+                            .foregroundStyle(.blue)
+                            .shadow(color: .blue.opacity(0.3), radius: 4)
+                    }
                     )
                 }
             )
@@ -284,6 +292,34 @@ struct PracticeEntryView: View {
             } message: {
                 Text("Enter a name for this template")
             }
+            .overlay {
+                if case .error(let error) = viewModel.state {
+                    Text(error.localizedDescription)
+                        .foregroundStyle(.white)
+                        .padding()
+                        .background(.red.opacity(0.8))
+                        .cornerRadius(10)
+                        .padding()
+                }
+            }
+            .overlay(alignment: .top) {
+                if case .success = viewModel.state {
+                    Text("Practice Saved!")
+                        .font(.system(.subheadline, design: .rounded, weight: .medium))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(
+                            Capsule()
+                                .fill(.green)
+                                .shadow(radius: 4)
+                        )
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(1)
+                        .padding(.top, 8)
+                }
+            }
+            .animation(.spring(duration: 0.5), value: viewModel.state)
         }
         .presentationDetents([.large])
         .interactiveDismissDisabled(false)
