@@ -30,6 +30,8 @@ struct AddPracticeView: View {
     @State private var showingImagePicker = false
     @State private var backgroundImage: UIImage?
     @AppStorage("practiceViewBackground") private var savedImageData: Data?
+    @State private var showingPracticeEntry = false
+    @State private var showingCompetition = false
     
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -77,17 +79,20 @@ struct AddPracticeView: View {
                             // First row
                             HStack(spacing: 16) {
                                 // Regular Practice Button
-                                NavigationLink {
-                                    PracticeEntryView(
-                                        date: date,
-                                        viewModel: viewModel,
-                                        onSave: onSave
-                                    )
+                                Button {
+                                    showingPracticeEntry = true
                                 } label: {
                                     PracticeOptionButton(
                                         icon: "figure.run",
                                         title: "Practice",
                                         color: .green
+                                    )
+                                }
+                                .sheet(isPresented: $showingPracticeEntry) {
+                                    PracticeEntryView(
+                                        date: date,
+                                        viewModel: viewModel,
+                                        onSave: onSave
                                     )
                                 }
                                 
@@ -104,17 +109,20 @@ struct AddPracticeView: View {
                             // Second row
                             HStack(spacing: 16) {
                                 // Competition Button
-                                NavigationLink {
-                                    AddCompetitionView(
-                                        date: date,
-                                        viewModel: viewModel,
-                                        onSave: onSave
-                                    )
+                                Button {
+                                    showingCompetition = true
                                 } label: {
                                     PracticeOptionButton(
                                         icon: "trophy.fill",
                                         title: "Competition",
                                         color: .orange
+                                    )
+                                }
+                                .sheet(isPresented: $showingCompetition) {
+                                    AddCompetitionView(
+                                        date: date,
+                                        viewModel: viewModel,
+                                        onSave: onSave
                                     )
                                 }
                                 
@@ -129,7 +137,7 @@ struct AddPracticeView: View {
                                     )
                                     viewModel.savePractice(practice)
                                     onSave()
-                                    dismiss()
+                                    dismissToRoot()
                                 }) {
                                     PracticeOptionButton(
                                         icon: "moon.zzz.fill",
@@ -197,20 +205,8 @@ struct AddPracticeView: View {
                     viewModel: viewModel.templateViewModel,
                     date: date,
                     onSelect: { template in
-                        // Create a new date by combining the selected date with template's time
-                        let calendar = Calendar.current
-                        let timeComponents = calendar.dateComponents([.hour, .minute], from: template.practiceTime)
-                        let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
-                        let combinedDate = calendar.date(from: DateComponents(
-                            year: dateComponents.year,
-                            month: dateComponents.month,
-                            day: dateComponents.day,
-                            hour: timeComponents.hour,
-                            minute: timeComponents.minute
-                        )) ?? date
-                        
                         let practice = Practice(
-                            date: combinedDate,  // Use combined date
+                            date: date,
                             type: .practice,
                             sections: template.sections,
                             intensity: template.intensity,
@@ -219,12 +215,22 @@ struct AddPracticeView: View {
                             liveTimeMinutes: template.liveTimeMinutes
                         )
                         viewModel.savePractice(practice)
-                        showingTemplates = false
                         onSave()
-                        dismiss()
+                        dismissToRoot()
                     }
                 )
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name.dismissAddPracticeView)) { _ in
+            dismiss()
+        }
+    }
+    
+    func dismissToRoot() {
+        // Dismiss both views simultaneously
+        DispatchQueue.main.async {
+            dismiss()
+            NotificationCenter.default.post(name: NSNotification.Name.dismissAddPracticeView, object: nil)
         }
     }
 }

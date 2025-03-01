@@ -130,7 +130,7 @@ struct AddCompetitionView: View {
                         Button("Save Competition") {
                             savePractice()
                             onSave()
-                            dismiss()
+                            dismissToRoot()
                         }
                         .gradientButtonStyle(isDisabled: name.isEmpty)
                         .disabled(name.isEmpty)
@@ -160,6 +160,17 @@ struct AddCompetitionView: View {
                 )
             } : nil
         )
+        .alert("Delete Competition", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                isDeleting = true
+                viewModel.deletePractice(for: date)
+                onSave()
+                dismissToRoot()
+            }
+        } message: {
+            Text("Are you sure you want to delete this competition? This action cannot be undone.")
+        }
         .sheet(isPresented: $showingDatePicker) {
             NavigationStack {
                 MultiDatePicker(selectedDates: $selectedDates)
@@ -252,6 +263,14 @@ struct AddCompetitionView: View {
     
     private func saveRecurringPractices() {
         // Implementation of saveRecurringPractices method
+    }
+    
+    func dismissToRoot() {
+        // Dismiss both views simultaneously
+        DispatchQueue.main.async {
+            dismiss()
+            NotificationCenter.default.post(name: NSNotification.Name.dismissAddPracticeView, object: nil)
+        }
     }
 }
 

@@ -204,7 +204,7 @@ struct PracticeEntryView: View {
                                 isDeleting = true
                                 viewModel.deletePractice(for: date)
                                 onSave()
-                                dismiss()
+                                dismissToRoot()
                             } label: {
                                 Label("Delete Practice", systemImage: "trash")
                             }
@@ -419,7 +419,7 @@ struct PracticeEntryView: View {
         
         isDismissing = true
         onSave()
-        dismiss()
+        dismissToRoot()
     }
     
     private func textEditorHeight(for text: String) -> CGFloat {
@@ -452,6 +452,14 @@ struct PracticeEntryView: View {
         print("📝 Template saved!")
         showingSaveTemplate = false
         showingTemplateSavedMessage = true
+    }
+    
+    func dismissToRoot() {
+        // Dismiss both views simultaneously
+        DispatchQueue.main.async {
+            dismiss()
+            NotificationCenter.default.post(name: NSNotification.Name.dismissAddPracticeView, object: nil)
+        }
     }
 }
 
