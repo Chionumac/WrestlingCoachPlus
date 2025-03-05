@@ -6,9 +6,15 @@
 //
 
 import SwiftUI
+import StoreKit
 
 @main
 struct CoachPlusApp: App {
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @State private var showPaywall = false
+    @State private var showWelcome = false
+    @AppStorage("hasSeenWelcome") private var hasSeenWelcome = false
+    
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     
     init() {
@@ -20,6 +26,28 @@ struct CoachPlusApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .task {
+                    if !hasSeenWelcome {
+                        showWelcome = true
+                        hasSeenWelcome = true
+                    }
+                }
+                .onChange(of: subscriptionManager.subscriptionStatus) { _, newStatus in
+                    if case .notSubscribed = newStatus {
+                        showPaywall = true
+                    }
+                }
+                .sheet(isPresented: $showWelcome) {
+                    WelcomeView()
+                }
+                .sheet(isPresented: $showPaywall) {
+                    PaywallView()
+                }
+                .overlay(alignment: .top) {
+                    if case .trial(let endDate) = subscriptionManager.subscriptionStatus {
+                        TrialBannerView(endDate: endDate)
+                    }
+                }
         }
     }
 }
