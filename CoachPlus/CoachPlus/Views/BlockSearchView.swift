@@ -24,7 +24,12 @@ struct BlockSearchView: View {
                     BlockListItem(
                         block: block,
                         onSelect: {
-                            onSelect(block)
+                            let copiedBlock = PracticeBlock(
+                                id: UUID(),
+                                title: block.title,
+                                content: block.content
+                            )
+                            onSelect(copiedBlock)
                             dismiss()
                         },
                         onDelete: {

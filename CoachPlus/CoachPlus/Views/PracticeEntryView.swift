@@ -29,6 +29,7 @@ struct PracticeEntryView: View {
     @State private var isDeleting = false
     @State private var isDismissing = false
     @State private var showingTemplateSavedMessage = false
+    @State private var isFromTemplate: Bool
     
     init(
         date: Date,
@@ -43,10 +44,8 @@ struct PracticeEntryView: View {
         self.practiceType = practiceType
         self.onSave = onSave
         
-        // Initialize with editing practice time or default time
         _practiceTime = State(initialValue: editingPractice?.date ?? viewModel.defaultPracticeTime)
         
-        // Initialize summary and details from the first two sections if editing
         if let practice = editingPractice {
             _summary = State(initialValue: practice.sections.first ?? "")
         }
@@ -56,7 +55,6 @@ struct PracticeEntryView: View {
         _includesLift = State(initialValue: editingPractice?.includesLift ?? false)
         _liveTimeMinutes = State(initialValue: editingPractice?.liveTimeMinutes ?? 0)
         
-        // Initialize blocks from practice sections if editing
         if let practice = editingPractice {
             var initialBlocks: [PracticeBlock] = []
             for section in practice.sections.dropFirst() {  // Skip the first section
@@ -70,6 +68,8 @@ struct PracticeEntryView: View {
             }
             _blocks = State(initialValue: initialBlocks.isEmpty ? [PracticeBlock()] : initialBlocks)
         }
+        
+        _isFromTemplate = State(initialValue: editingPractice?.isFromTemplate ?? false)
     }
     
     private let dateFormatter: DateFormatter = {
@@ -81,7 +81,6 @@ struct PracticeEntryView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Add state overlay
                 if case .loading = viewModel.state {
                     ProgressView("Saving...")
                         .padding()
@@ -89,7 +88,6 @@ struct PracticeEntryView: View {
                         .cornerRadius(10)
                 }
                 
-                // Date subheader
                 HStack {
                     Text(dateFormatter.string(from: date))
                         .font(.title2.weight(.medium))
@@ -109,7 +107,6 @@ struct PracticeEntryView: View {
                 .background(Color(.systemBackground))
                 
                 if practiceType == .rest {
-                    // Rest Day View
                     VStack {
                         Image(systemName: "moon.zzz.fill")
                             .font(.system(size: 60))
@@ -122,10 +119,8 @@ struct PracticeEntryView: View {
                     }
                     .frame(maxHeight: .infinity)
                 } else {
-                    // Regular Practice View
                     ScrollView {
                         VStack(spacing: 16) {
-                            // Practice Summary section
                             SummaryField(
                                 text: $summary,
                                 showError: $showingSummaryError,
@@ -133,7 +128,6 @@ struct PracticeEntryView: View {
                                 placeholder: "Enter practice summary..."
                             )
                             
-                            // Practice Blocks
                             BlockEditorGrid(
                                 blocks: $blocks,
                                 selectedBlockId: $selectedBlockId,
@@ -141,20 +135,17 @@ struct PracticeEntryView: View {
                                 viewModel: viewModel
                             )
                             
-                            // Live Time Selector
                             PracticeSettings(
                                 liveTimeMinutes: $liveTimeMinutes,
                                 includesLift: $includesLift
                             )
                             
-                            // Intensity slider section with save button
                             IntensitySlider(
                                 intensity: $intensity,
                                 title: "Practice Intensity",
                                 style: .intensity
                             )
                             
-                            // Save button
                             Button("Save Practice") {
                                 if summary.isEmpty {
                                     showingSummaryError = true
@@ -302,23 +293,6 @@ struct PracticeEntryView: View {
                         .padding()
                 }
             }
-            .overlay(alignment: .top) {
-                if case .success = viewModel.state {
-                    Text("Practice Saved!")
-                        .font(.system(.subheadline, design: .rounded, weight: .medium))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            Capsule()
-                                .fill(.green)
-                                .shadow(radius: 4)
-                        )
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .zIndex(1)
-                        .padding(.top, 8)
-                }
-            }
             .animation(.spring(duration: 0.5), value: viewModel.state)
         }
         .presentationDetents([.large])
@@ -344,7 +318,6 @@ struct PracticeEntryView: View {
         var currentDate = date
         while let nextDate = recurrencePattern.nextDate(from: currentDate),
               nextDate <= recurrenceEndDate {
-            // Fix date handling for recurring practices
             let calendar = Calendar.current
             let dateComponents = calendar.dateComponents([.year, .month, .day], from: nextDate)
             let timeComponents = calendar.dateComponents([.hour, .minute], from: practiceTime)
@@ -356,7 +329,6 @@ struct PracticeEntryView: View {
                 minute: timeComponents.minute
             )) ?? nextDate
             
-            // Create sections from blocks and summary
             let blockSections = blocks
                 .filter { !$0.isEmpty }
                 .map { $0.formattedForPractice() }
@@ -366,7 +338,7 @@ struct PracticeEntryView: View {
             let practice = Practice(
                 date: combinedDate,
                 type: practiceType,
-                sections: sections,  // Use the newly created sections
+                sections: sections,
                 intensity: intensity,
                 isFromTemplate: false,
                 includesLift: includesLift,
@@ -378,7 +350,6 @@ struct PracticeEntryView: View {
     }
     
     private func savePractice() {
-        // Only save if not already saving
         if isDismissing || isDeleting { return }
         
         let blockSections = blocks
@@ -387,7 +358,6 @@ struct PracticeEntryView: View {
         
         let sections = [summary] + blockSections
         
-        // Fix date handling
         let calendar = Calendar.current
         let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
         let timeComponents = calendar.dateComponents([.hour, .minute], from: practiceTime)
@@ -412,7 +382,6 @@ struct PracticeEntryView: View {
         
         viewModel.savePractice(practice)
         
-        // Handle recurring practices if pattern is set
         if recurrencePattern != .none {
             saveRecurringPractices()
         }
@@ -429,7 +398,6 @@ struct PracticeEntryView: View {
         return max(baseHeight, CGFloat(numberOfLines) * lineHeight)
     }
     
-    // Add debug prints to track the flow
     private func saveAsTemplate() {
         print("📝 Attempting to save template: \(templateName)")
         
@@ -455,7 +423,6 @@ struct PracticeEntryView: View {
     }
     
     func dismissToRoot() {
-        // Dismiss both views simultaneously
         DispatchQueue.main.async {
             dismiss()
             NotificationCenter.default.post(name: NSNotification.Name.dismissAddPracticeView, object: nil)
