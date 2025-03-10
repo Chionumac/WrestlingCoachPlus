@@ -36,7 +36,7 @@ struct StatsBar: View {
                 StatItem(
                     icon: "trophy.fill",
                     value: "\(monthStats.competitions)",
-                    label: "Comp",
+                    label: "Competitions",
                     color: .green
                 )
                 
@@ -63,7 +63,7 @@ struct StatsBar: View {
                 StatItem(
                     icon: "flame.fill",
                     value: "\(Int(monthStats.intensity * 10))/10",
-                    label: "Month Int",
+                    label: "Month Intentsity",
                     color: .green
                 )
                 
@@ -79,7 +79,7 @@ struct StatsBar: View {
                 StatItem(
                     icon: "flame.fill",
                     value: "\(Int(weekStats.intensity * 10))/10",
-                    label: "Week Int",
+                    label: "Week Intensity",
                     color: .green
                 )
             }

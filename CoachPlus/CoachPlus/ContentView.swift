@@ -54,47 +54,6 @@ struct ContentView: View {
                             }
                         )
                         .padding(.vertical)
-                        
-                        #if DEBUG
-                        // Debug Subscription Controls
-                        GroupBox("Debug Subscription Controls") {
-                            VStack(spacing: 10) {
-                                Button("Force Show Paywall") {
-                                    showPaywall = true
-                                }
-                                
-                                Button("Expire Trial") {
-                                    // Set trial start date to 15 days ago
-                                    let fifteenDaysAgo = Calendar.current.date(byAdding: .day, value: -15, to: Date())!
-                                    UserDefaults.standard.set(fifteenDaysAgo, forKey: "trialStartDate")
-                                    Task {
-                                        await subscriptionManager.updateSubscriptionStatus()
-                                    }
-                                }
-                                
-                                Button("Reset Trial") {
-                                    UserDefaults.standard.removeObject(forKey: "trialStartDate")
-                                    Task {
-                                        await subscriptionManager.updateSubscriptionStatus()
-                                    }
-                                }
-                                
-                                // Show current subscription status
-                                switch subscriptionManager.subscriptionStatus {
-                                case .loading:
-                                    Text("Status: Loading")
-                                case .trial(let endDate):
-                                    Text("Trial ends: \(endDate.formatted())")
-                                case .subscribed:
-                                    Text("Status: Subscribed")
-                                case .notSubscribed:
-                                    Text("Status: Not Subscribed")
-                                }
-                            }
-                            .font(.caption)
-                        }
-                        .padding()
-                        #endif
                     }
                 }
             ))

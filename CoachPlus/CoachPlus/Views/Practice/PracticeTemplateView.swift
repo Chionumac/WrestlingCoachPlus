@@ -2,15 +2,23 @@ import SwiftUI
 
 struct PracticeTemplateView: View {
     @ObservedObject var viewModel: TemplateViewModel
+    @ObservedObject var practiceViewModel: PracticeViewModel
     @Environment(\.dismiss) private var dismiss
     let date: Date
     let onSelect: (PracticeTemplate) -> Void
+    @State private var selectedPractice: Practice?
+    @State private var showingPracticeEdit = false
     
     var body: some View {
         NavigationStack {
             List {
                 ForEach(viewModel.templates) { template in
-                    Button(action: { onSelect(template) }) {
+                    Button(action: {
+                        if let practice = practiceViewModel.createPracticeFromTemplate(template, date: date) {
+                            selectedPractice = practice
+                            showingPracticeEdit = true
+                        }
+                    }) {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(template.name)
@@ -107,6 +115,20 @@ struct PracticeTemplateView: View {
                     )
                 }
             }
+            .sheet(isPresented: $showingPracticeEdit) {
+                if let practice = selectedPractice {
+                    NavigationStack {
+                        PracticeEntryView(
+                            date: date,
+                            viewModel: practiceViewModel,
+                            editingPractice: practice
+                        ) {
+                            // Use the same dismissal flow as regular practices
+                            NotificationCenter.default.post(name: NSNotification.Name.dismissAddPracticeView, object: nil)
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -114,6 +136,7 @@ struct PracticeTemplateView: View {
 #Preview {
     PracticeTemplateView(
         viewModel: TemplateViewModel(),
+        practiceViewModel: PracticeViewModel(),
         date: Date(),
         onSelect: { _ in }
     )

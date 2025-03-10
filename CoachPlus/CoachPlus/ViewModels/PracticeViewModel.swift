@@ -218,10 +218,13 @@ class PracticeViewModel: ObservableObject {
         practices = practiceManager.getPractices()
     }
     
-    func createPracticeFromTemplate(_ template: PracticeTemplate, date: Date) {
-        state = .loading
+    @discardableResult
+    func createPracticeFromTemplate(_ template: PracticeTemplate, date: Date, completion: ((Practice) -> Void)? = nil) -> Practice? {
         do {
-            try practiceManager.createPractice(
+            // Delete any existing practice for this date first
+            practiceManager.deletePractice(for: date)
+            
+            let practice = try practiceManager.createPractice(
                 date: date,
                 time: defaultPracticeTime,
                 type: .practice,
@@ -232,9 +235,11 @@ class PracticeViewModel: ObservableObject {
                 liveTimeMinutes: template.liveTimeMinutes
             )
             practices = practiceManager.getPractices()
-            state = .success
+            completion?(practice)
+            return practice
         } catch {
             state = .error(error)
+            return nil
         }
     }
 } 

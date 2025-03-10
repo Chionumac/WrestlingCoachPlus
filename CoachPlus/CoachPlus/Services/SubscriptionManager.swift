@@ -8,17 +8,16 @@ class SubscriptionManager: ObservableObject {
     @Published private(set) var subscriptionStatus: SubscriptionStatus = .loading
     @Published private(set) var products: [Product] = []
     
+    enum SubscriptionStatus: Equatable {
+        case loading
+        case subscribed
+        case notSubscribed
+    }
+    
     private let productIds = ["com.yourapp.wrestlingcoachplus.monthly"]
     private let userDefaults = UserDefaults.standard
     private let trialDuration: TimeInterval = 14 * 24 * 60 * 60 // 14 days in seconds
     private var transactionTask: Task<Void, Error>?
-    
-    enum SubscriptionStatus: Equatable {
-        case loading
-        case trial(endDate: Date)
-        case subscribed
-        case notSubscribed
-    }
     
     init() {
         // Start listening for transaction updates
@@ -84,7 +83,7 @@ class SubscriptionManager: ObservableObject {
         } else if let startDate = trialStartDate {
             let endDate = startDate.addingTimeInterval(trialDuration)
             if Date() < endDate {
-                self.subscriptionStatus = .trial(endDate: endDate)
+                self.subscriptionStatus = .subscribed  // During trial, treat as subscribed
             } else {
                 self.subscriptionStatus = .notSubscribed
             }
@@ -124,7 +123,7 @@ class SubscriptionManager: ObservableObject {
     
     func isFeatureUnlocked() -> Bool {
         switch subscriptionStatus {
-        case .subscribed, .trial:
+        case .subscribed:
             return true
         case .notSubscribed, .loading:
             return false

@@ -43,11 +43,6 @@ struct CoachPlusApp: App {
                 .sheet(isPresented: $showPaywall) {
                     PaywallView()
                 }
-                .overlay(alignment: .top) {
-                    if case .trial(let endDate) = subscriptionManager.subscriptionStatus {
-                        TrialBannerView(endDate: endDate)
-                    }
-                }
         }
     }
 }

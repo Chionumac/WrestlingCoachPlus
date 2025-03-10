@@ -8,7 +8,7 @@ struct PaywallView: View {
         VStack(spacing: 20) {
             // Header
             VStack(spacing: 8) {
-                Text("Continue Using Wrestling Coach Plus")
+                Text("Continue Using Coach+")
                     .font(.system(.title, design: .rounded, weight: .bold))
                     .multilineTextAlignment(.center)
                 Text("Your free trial has ended")

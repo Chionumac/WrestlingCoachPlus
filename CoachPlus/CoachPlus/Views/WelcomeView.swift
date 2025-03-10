@@ -8,13 +8,12 @@ struct WelcomeView: View {
         VStack(spacing: 24) {
             // App Icon and Title
             VStack(spacing: 16) {
-                Image("Coach Icon") // Make sure to have this in your assets
+                Image("AppLogo") // Make sure to have this in your assets
                     .resizable()
-                    .frame(width: 100, height: 100)
-                    .cornerRadius(20)
+                    .frame(width: 250, height: 75)
                     .shadow(radius: 10)
                 
-                Text("Welcome to Wrestling Coach Plus")
+                Text("Welcome to Coach+")
                     .font(.system(.title, design: .rounded, weight: .bold))
                     .multilineTextAlignment(.center)
             }

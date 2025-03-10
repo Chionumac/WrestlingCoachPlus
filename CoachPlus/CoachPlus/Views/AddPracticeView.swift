@@ -203,18 +203,9 @@ struct AddPracticeView: View {
             .sheet(isPresented: $showingTemplates) {
                 PracticeTemplateView(
                     viewModel: viewModel.templateViewModel,
+                    practiceViewModel: viewModel,
                     date: date,
-                    onSelect: { template in
-                        let practice = Practice(
-                            date: date,
-                            type: .practice,
-                            sections: template.sections,
-                            intensity: template.intensity,
-                            isFromTemplate: true,
-                            includesLift: template.includesLift,
-                            liveTimeMinutes: template.liveTimeMinutes
-                        )
-                        viewModel.savePractice(practice)
+                    onSelect: { _ in
                         onSave()
                         dismissToRoot()
                     }

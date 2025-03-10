@@ -17,7 +17,7 @@
 
   ],
   "settings" : {
-    "_applicationInternalID" : "com.mrc.CoachPlus",
+    "_applicationInternalID" : "com.mrc.wrestlingcoachplus",
     "_developerTeamID" : "N3939PA7MU",
     "_failTransactionsEnabled" : false,
     "_lastSynchronizedDate" : 726011736.87440503,
@@ -76,8 +76,8 @@
       "id" : "21181B89",
       "localizations" : [
         {
-          "description" : "Access all premium features of Wrestling Coach Plus",
-          "displayName" : "Wrestling Coach Plus Premium",
+          "description" : "Access Wrestling Coach Plus",
+          "displayName" : "Wrestling Coach Plus",
           "locale" : "en_US"
         }
       ],
@@ -102,13 +102,13 @@
           "localizations" : [
             {
               "description" : "Monthly subscription with 14-day free trial",
-              "displayName" : "Monthly Premium",
+              "displayName" : "Monthly Subscription",
               "locale" : "en_US"
             }
           ],
           "productID" : "com.yourapp.wrestlingcoachplus.monthly",
           "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Monthly Premium",
+          "referenceName" : "Monthly Subscription",
           "subscriptionGroupID" : "21181B89",
           "type" : "RecurringSubscription",
           "winbackOffers" : [
@@ -119,7 +119,7 @@
     }
   ],
   "version" : {
-    "major" : 4,
+    "major" : 3,
     "minor" : 0
   }
 }

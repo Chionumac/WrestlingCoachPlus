@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C525CD452D78FDD7005C5194 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C525CD442D78FDD7005C5194 /* StoreKit.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		C53F76242D405F15004560F9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,6 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C525CD442D78FDD7005C5194 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		C53F76132D405F13004560F9 /* CoachPlus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoachPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C53F76232D405F15004560F9 /* CoachPlusTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CoachPlusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C53F762D2D405F15004560F9 /* CoachPlusUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CoachPlusUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -65,6 +70,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C525CD452D78FDD7005C5194 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -85,12 +91,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C525CD432D78FDD7005C5194 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C525CD442D78FDD7005C5194 /* StoreKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		C53F760A2D405F13004560F9 = {
 			isa = PBXGroup;
 			children = (
 				C53F76152D405F13004560F9 /* CoachPlus */,
 				C53F76262D405F15004560F9 /* CoachPlusTests */,
 				C53F76302D405F15004560F9 /* CoachPlusUITests */,
+				C525CD432D78FDD7005C5194 /* Frameworks */,
 				C53F76142D405F13004560F9 /* Products */,
 			);
 			sourceTree = "<group>";
