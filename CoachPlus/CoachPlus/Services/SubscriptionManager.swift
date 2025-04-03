@@ -14,7 +14,7 @@ class SubscriptionManager: ObservableObject {
         case notSubscribed
     }
     
-    private let productIds = ["com.yourapp.wrestlingcoachplus.monthly"]
+    private let productIds = ["com.mrc.wrestlingcoachplus.annual"]
     private let userDefaults = UserDefaults.standard
     private let trialDuration: TimeInterval = 14 * 24 * 60 * 60 // 14 days in seconds
     private var transactionTask: Task<Void, Error>?
@@ -127,6 +127,41 @@ class SubscriptionManager: ObservableObject {
             return true
         case .notSubscribed, .loading:
             return false
+        }
+    }
+    
+    enum RestoreResult {
+        case restored
+        case noPurchasesFound
+        case error(Error)
+    }
+
+    func restorePurchases() async throws -> RestoreResult {
+        var hasRestoredAny = false
+        
+        do {
+            // Request to restore purchases from the App Store
+            try await AppStore.sync()
+            
+            // Check for any restored transactions
+            for await verification in Transaction.currentEntitlements {
+                if case .verified(let transaction) = verification {
+                    // Verify the transaction is valid and not expired
+                    if transaction.revocationDate == nil &&
+                        (transaction.expirationDate == nil || transaction.expirationDate! > Date()) {
+                        hasRestoredAny = true
+                        await transaction.finish()
+                    }
+                }
+            }
+            
+            // Update subscription status after checking all transactions
+            await checkSubscriptionStatus()
+            
+            return hasRestoredAny ? .restored : .noPurchasesFound
+            
+        } catch {
+            return .error(error)
         }
     }
 }

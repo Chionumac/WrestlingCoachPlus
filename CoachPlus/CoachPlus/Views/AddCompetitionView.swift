@@ -75,91 +75,94 @@ struct AddCompetitionView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            if case .loading = viewModel.state {
-                ProgressView("Saving Competition...")
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(10)
-            }
-            
-            DateHeaderView(date: date, practiceTime: $practiceTime)
-            
-            Form {
-                Section {
-                    TextField("Competition Name", text: $name)
-                    
-                    Button(action: { showingDatePicker = true }) {
-                        HStack {
-                            Text("Competition Dates")
-                            Spacer()
-                            Text("\(selectedDates.count) selected")
-                                .foregroundStyle(.secondary)
+        NavigationStack {
+            VStack(spacing: 0) {
+                if case .loading = viewModel.state {
+                    ProgressView("Saving Competition...")
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(10)
+                }
+                
+                DateHeaderView(date: date, practiceTime: $practiceTime)
+                
+                Form {
+                    Section {
+                        TextField("Competition Name", text: $name)
+                        
+                        Button(action: { showingDatePicker = true }) {
+                            HStack {
+                                Text("Competition Dates")
+                                Spacer()
+                                Text("\(selectedDates.count) selected")
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
-                }
-                
-                Section {
-                    URLInputField(
-                        urlString: $results,
-                        placeholder: "Results URL",
-                        iconName: "arrow.up.right",
-                        linkText: "Open Results"
-                    )
                     
-                    URLInputField(
-                        urlString: $video,
-                        placeholder: "Video URL",
-                        iconName: "arrow.up.right",
-                        linkText: "Open Video"
-                    )
-                    
-                    TextField("Notes", text: $notes, axis: .vertical)
-                        .lineLimit(3...6)
-                }
-                
-                Section {
-                    VStack(spacing: 16) {
-                        IntensitySlider(
-                            intensity: $performanceRating,
-                            title: "Performance",
-                            style: .performance
+                    Section {
+                        URLInputField(
+                            urlString: $results,
+                            placeholder: "Results URL",
+                            iconName: "arrow.up.right",
+                            linkText: "Open Results"
                         )
                         
-                        // Save button
-                        Button("Save Competition") {
-                            savePractice()
-                            onSave()
-                            dismissToRoot()
+                        URLInputField(
+                            urlString: $video,
+                            placeholder: "Video URL",
+                            iconName: "arrow.up.right",
+                            linkText: "Open Video"
+                        )
+                        
+                        TextField("Notes", text: $notes, axis: .vertical)
+                            .lineLimit(3...6)
+                    }
+                    
+                    Section {
+                        VStack(spacing: 16) {
+                            IntensitySlider(
+                                intensity: $performanceRating,
+                                title: "Performance",
+                                style: .performance
+                            )
+                            
+                            Button("Save Competition") {
+                                savePractice()
+                                onSave()
+                                dismissToRoot()
+                            }
+                            .gradientButtonStyle(isDisabled: name.isEmpty)
+                            .disabled(name.isEmpty)
                         }
-                        .gradientButtonStyle(isDisabled: name.isEmpty)
-                        .disabled(name.isEmpty)
                     }
                 }
+                .listSectionSpacing(.compact)
             }
-            .listSectionSpacing(.compact)
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        .standardToolbar(
-            title: editingPractice == nil ? "Add Competition" : "Edit Competition",
-            trailing: editingPractice != nil ? ToolbarItem(placement: .primaryAction) {
-                AnyView(
-                    Menu {
-                        Button(role: .destructive) {
-                            showingDeleteConfirmation = true
+            .navigationBarTitleDisplayMode(.inline)
+            .standardToolbar(
+                title: editingPractice == nil ? "Add Competition" : "Edit Competition",
+                trailing: editingPractice != nil ? ToolbarItem(placement: .primaryAction) {
+                    AnyView(
+                        Menu {
+                            Button(role: .destructive) {
+                                showingDeleteConfirmation = true
+                            } label: {
+                                Label("Delete Competition", systemImage: "trash")
+                            }
                         } label: {
-                            Label("Delete Competition", systemImage: "trash")
+                            Image(systemName: "ellipsis.circle.fill")
+                                .font(.title2)
+                                .symbolRenderingMode(.hierarchical)
+                                .foregroundStyle(.blue)
+                                .shadow(color: .blue.opacity(0.3), radius: 4)
                         }
-                    } label: {
-                        Image(systemName: "ellipsis.circle.fill")
-                            .font(.title2)
-                            .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(.blue)
-                            .shadow(color: .blue.opacity(0.3), radius: 4)
-                    }
-                )
-            } : nil
-        )
+                    )
+                } : nil
+            )
+        }
+        .presentationDetents([.large])
+        .interactiveDismissDisabled(false)
         .alert("Delete Competition", isPresented: $showingDeleteConfirmation) {
             Button("Cancel", role: .cancel) { }
             Button("Delete", role: .destructive) {
@@ -191,8 +194,6 @@ struct AddCompetitionView: View {
             }
             .presentationDetents([.medium])
         }
-        .presentationDetents([.large])
-        .interactiveDismissDisabled(false)
         .onDisappear {
             if !name.isEmpty && !isDeleting {
                 savePractice()
@@ -216,23 +217,6 @@ struct AddCompetitionView: View {
                     .background(.red.opacity(0.8))
                     .cornerRadius(10)
                     .padding()
-            }
-        }
-        .overlay(alignment: .top) {
-            if case .success = viewModel.state {
-                Text("Competition Saved!")
-                    .font(.system(.subheadline, design: .rounded, weight: .medium))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(
-                        Capsule()
-                            .fill(.green)
-                            .shadow(radius: 4)
-                    )
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .zIndex(1)
-                    .padding(.top, 8)
             }
         }
         .animation(.spring(duration: 0.5), value: viewModel.state)

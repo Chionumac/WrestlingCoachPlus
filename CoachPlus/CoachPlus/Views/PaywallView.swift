@@ -3,6 +3,8 @@ import SwiftUI
 struct PaywallView: View {
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @Environment(\.dismiss) private var dismiss
+    @State private var showingRestoreAlert = false
+    @State private var restoreAlertMessage = ""
     
     var body: some View {
         VStack(spacing: 20) {
@@ -37,7 +39,7 @@ struct PaywallView: View {
                             dismiss()
                         }
                     } label: {
-                        Text("Subscribe for \(product.displayPrice)/month")
+                        Text("Subscribe for \(product.displayPrice)/year")
                             .font(.headline)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
@@ -46,7 +48,36 @@ struct PaywallView: View {
                             .cornerRadius(12)
                     }
                     
-                    Text("Continue using all features for \(product.displayPrice)/month")
+                    Button {
+                        Task {
+                            let result = try? await subscriptionManager.restorePurchases()
+                            switch result {
+                            case .restored:
+                                restoreAlertMessage = "Your purchases have been restored successfully!"
+                                showingRestoreAlert = true
+                                // Dismiss after successful restore
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                    dismiss()
+                                }
+                            case .noPurchasesFound:
+                                restoreAlertMessage = "No previous purchases were found to restore."
+                                showingRestoreAlert = true
+                            case .error:
+                                restoreAlertMessage = "There was an error restoring your purchases. Please try again."
+                                showingRestoreAlert = true
+                            case .none:
+                                restoreAlertMessage = "An unknown error occurred. Please try again."
+                                showingRestoreAlert = true
+                            }
+                        }
+                    } label: {
+                        Text("Restore Purchases")
+                            .font(.subheadline)
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.top, 8)
+                    
+                    Text("Continue using all features for \(product.displayPrice)/year")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -54,15 +85,20 @@ struct PaywallView: View {
             
             // Terms and Privacy
             HStack(spacing: 4) {
-                Link("Terms of Service", destination: URL(string: "https://your-terms-url.com")!)
+                Link("Terms of Service", destination: URL(string: "https://chionumac.github.io/wrestlingcoachplus-terms")!)
                 Text("•")
-                Link("Privacy Policy", destination: URL(string: "https://your-privacy-url.com")!)
+                Link("Privacy Policy", destination: URL(string: "https://chionumac.github.io/wrestlingcoachplus-privacy/privacy-policy")!)
             }
             .font(.caption)
             .foregroundStyle(.secondary)
             .padding(.bottom, 20)
         }
         .padding()
+        .alert("Restore Purchases", isPresented: $showingRestoreAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(restoreAlertMessage)
+        }
     }
 }
 

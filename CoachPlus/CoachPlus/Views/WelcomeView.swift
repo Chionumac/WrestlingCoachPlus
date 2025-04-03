@@ -35,7 +35,7 @@ struct WelcomeView: View {
                 Text("Try Wrestling Coach Plus Free")
                     .font(.title2.bold())
                 
-                Text("14-day free trial to experience the full app.\nThen just $1.99/month to continue.")
+                Text("14-day free trial to experience the full app.\nThen just $4.99/year to continue.")
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
             }
@@ -57,11 +57,13 @@ struct WelcomeView: View {
             .padding(.horizontal)
             
             // Terms
-            Group {
-                Text("By continuing, you agree to our ")
-                + Text("Terms of Service").foregroundColor(.blue)
-                + Text(" and ")
-                + Text("Privacy Policy").foregroundColor(.blue)
+            HStack(spacing: 4) {
+                Text("By continuing, you agree to our")
+                Link("Terms of Service", destination: URL(string: "https://chionumac.github.io/wrestlingcoachplus-terms")!)
+                    .foregroundColor(.blue)
+                Text("and")
+                Link("Privacy Policy", destination: URL(string: "https://chionumac.github.io/wrestlingcoachplus-privacy/privacy-policy")!)
+                    .foregroundColor(.blue)
             }
             .font(.caption)
             .multilineTextAlignment(.center)
