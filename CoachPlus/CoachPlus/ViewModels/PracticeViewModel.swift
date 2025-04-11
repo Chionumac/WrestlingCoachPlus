@@ -241,4 +241,8 @@ class PracticeViewModel: ObservableObject {
             return nil
         }
     }
+    
+    func handleError(_ error: Error) {
+        state = .error(error)
+    }
 } 

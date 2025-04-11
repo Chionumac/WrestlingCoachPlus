@@ -30,6 +30,9 @@ struct PracticeEntryView: View {
     @State private var isDismissing = false
     @State private var showingTemplateSavedMessage = false
     @State private var isFromTemplate: Bool
+    @State private var exportURL: URL?
+    @State private var showingShareSheet = false
+    @State private var isExporting = false
     
     init(
         date: Date,
@@ -178,6 +181,57 @@ struct PracticeEntryView: View {
                 trailing: ToolbarItem(placement: .primaryAction) {
                     AnyView(
                     Menu {
+                        Button(action: {
+                            // Create practice object from current state
+                            let blockSections = blocks
+                                .filter { !$0.isEmpty }
+                                .map { $0.formattedForPractice() }
+                            
+                            let sections = [summary] + blockSections
+                            
+                            let calendar = Calendar.current
+                            let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
+                            let timeComponents = calendar.dateComponents([.hour, .minute], from: practiceTime)
+                            let combinedDate = calendar.date(from: DateComponents(
+                                year: dateComponents.year,
+                                month: dateComponents.month,
+                                day: dateComponents.day,
+                                hour: timeComponents.hour,
+                                minute: timeComponents.minute
+                            )) ?? date
+                            
+                            let practice = Practice(
+                                id: editingPractice?.id ?? UUID(),
+                                date: combinedDate,
+                                type: practiceType,
+                                sections: sections,
+                                intensity: intensity,
+                                isFromTemplate: false,
+                                includesLift: includesLift,
+                                liveTimeMinutes: liveTimeMinutes
+                            )
+                            
+                            // Export to PDF
+                            isExporting = true
+                            do {
+                                print("Starting PDF export...")
+                                let pdfDocument = try PracticeExporter.generatePDF(for: practice)
+                                print("PDF generated successfully")
+                                let fileURL = try PracticeExporter.savePDF(pdfDocument, for: practice)
+                                print("PDF saved to: \(fileURL)")
+                                
+                                exportURL = fileURL
+                                showingShareSheet = true
+                            } catch {
+                                print("PDF Export Error: \(error)")
+                                viewModel.handleError(error)
+                            }
+                            isExporting = false
+                        }) {
+                            Label("Export PDF", systemImage: "doc.text")
+                        }
+                        .disabled(isExporting)
+                        
                         Button {
                             showingRecurrenceOptions = true
                         } label: {
@@ -187,7 +241,7 @@ struct PracticeEntryView: View {
                         Button {
                             showingSaveTemplate = true
                         } label: {
-                            Label("Save as Template", systemImage: "doc.badge.plus")
+                            Label("Save as Template", systemImage: "square.and.arrow.down")
                         }
                         
                         if editingPractice != nil {
@@ -201,7 +255,7 @@ struct PracticeEntryView: View {
                             }
                         }
                     } label: {
-                        Image(systemName: "ellipsis.circle.fill")
+                        Image(systemName: "ellipsis.circle")
                             .font(.title2)
                             .symbolRenderingMode(.hierarchical)
                             .foregroundStyle(.blue)
@@ -256,6 +310,13 @@ struct PracticeEntryView: View {
                        let index = blocks.firstIndex(where: { $0.id == selectedBlockId }) {
                         blocks[index] = selectedBlock
                     }
+                }
+            }
+            .sheet(isPresented: $showingShareSheet) {
+                if let url = exportURL {
+                    ShareSheet(activityItems: [url])
+                        .presentationDetents([.medium, .large])
+                        .edgesIgnoringSafeArea(.bottom)
                 }
             }
             .overlay(alignment: .top) {
@@ -438,6 +499,31 @@ struct PracticeSectionField: View {
             .textFieldStyle(.roundedBorder)
             .lineLimit(3...6)
     }
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: nil
+        )
+        
+        // Handle iPad presentation
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first {
+                controller.popoverPresentationController?.sourceView = window
+                controller.popoverPresentationController?.permittedArrowDirections = []
+                controller.popoverPresentationController?.sourceRect = CGRect(x: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY, width: 0, height: 0)
+            }
+        }
+        
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 #Preview {
