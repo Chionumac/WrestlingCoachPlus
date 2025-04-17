@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var viewModel = PracticeViewModel()
+    @StateObject private var teamViewModel = TeamViewModel()
     @State private var showingAddPractice = false
     @State private var showingPracticeDetails = false
     @State private var showingMonthlyFocus = false
@@ -20,105 +21,117 @@ struct ContentView: View {
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     
     var body: some View {
-        NavigationStack {
-            MainLayout(content: AnyView(
-                VStack(spacing: 0) {
-                    // Calendar View
-                    CalendarView(
-                        selectedDate: $viewModel.selectedDate,
-                        showingAddPractice: $showingAddPractice,
-                        showingPracticeDetails: $showingPracticeDetails,
-                        practices: viewModel.practices
-                    )
-                    .frame(height: UIScreen.main.bounds.height * 0.48)
-                    .padding(.top)
-                    
-                    // Stats Bar - Updated to use StatsViewModel
-                    StatsBar(
-                        viewModel: viewModel.statsViewModel,
-                        selectedDate: viewModel.selectedDate
-                    )
-                    .frame(height: 170)
-                    .padding(.vertical, 4)
-                    
-                    Spacer(minLength: 10)
-                    
-                    // Quick View
-                    ScrollView {
-                        QuickViewContainer(
-                            practice: viewModel.practiceForDate(viewModel.selectedDate),
-                            onTap: {
-                                if viewModel.practiceForDate(viewModel.selectedDate) != nil {
-                                    showingPracticeDetails = true
-                                }
-                            }
+        TabView {
+            // Calendar Tab (Main View)
+            NavigationStack {
+                MainLayout(content: AnyView(
+                    VStack(spacing: 0) {
+                        // Calendar View
+                        CalendarView(
+                            selectedDate: $viewModel.selectedDate,
+                            showingAddPractice: $showingAddPractice,
+                            showingPracticeDetails: $showingPracticeDetails,
+                            practices: viewModel.practices
                         )
-                        .padding(.vertical)
-                    }
-                }
-            ))
-            .navigationTitle("COACH+")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                CoachPlusToolbar(
-                    showingMonthlyFocus: $showingMonthlyFocus,
-                    showingSearchSheet: $showingSearchSheet,
-                    showingDefaultTimeSetting: $showingDefaultTimeSetting,
-                    showingTutorial: $showingTutorial
-                )
-            }
-            .sheet(isPresented: $showingAddPractice) {
-                AddPracticeView(
-                    date: viewModel.selectedDate,
-                    viewModel: viewModel,
-                    onSave: {
-                        showingAddPractice = false
-                    }
-                )
-            }
-            .sheet(isPresented: $showingPracticeDetails) {
-                if let practice = viewModel.practiceForDate(viewModel.selectedDate) {
-                    NavigationStack {
-                        if practice.type == .competition {
-                            AddCompetitionView(
-                                date: viewModel.selectedDate,
-                                viewModel: viewModel,
-                                editingPractice: practice,
-                                onSave: {
-                                    showingPracticeDetails = false
+                        .frame(height: UIScreen.main.bounds.height * 0.48)
+                        .padding(.top)
+                        
+                        // Stats Bar
+                        StatsBar(
+                            viewModel: viewModel.statsViewModel,
+                            selectedDate: viewModel.selectedDate
+                        )
+                        .frame(height: 145)
+                        .padding(.vertical, 1)
+                        
+                        Spacer(minLength: 19)
+                        
+                        // Quick View
+                        ScrollView {
+                            QuickViewContainer(
+                                practice: viewModel.practiceForDate(viewModel.selectedDate),
+                                onTap: {
+                                    if viewModel.practiceForDate(viewModel.selectedDate) != nil {
+                                        showingPracticeDetails = true
+                                    }
                                 }
                             )
-                        } else {
-                            PracticeEntryView(
-                                date: practice.date,
-                                viewModel: viewModel,
-                                editingPractice: practice,
-                                onSave: {
-                                    showingPracticeDetails = false
-                                }
-                            )
+                            .padding(.vertical)
                         }
                     }
+                ))
+                .navigationTitle("COACH+")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    CoachPlusToolbar(
+                        showingMonthlyFocus: $showingMonthlyFocus,
+                        showingSearchSheet: $showingSearchSheet,
+                        showingDefaultTimeSetting: $showingDefaultTimeSetting,
+                        showingTutorial: $showingTutorial
+                    )
                 }
             }
-            .sheet(isPresented: $showingMonthlyFocus) {
-                MonthlyFocusView(
-                    viewModel: viewModel,
-                    date: viewModel.selectedDate
-                )
+            .tabItem {
+                Label("Calendar", systemImage: "calendar")
             }
-            .sheet(isPresented: $showingSearchSheet) {
-                UnifiedSearchView(viewModel: viewModel)
+            
+            // Teams Tab
+            TeamsListView()
+                .tabItem {
+                    Label("Teams", systemImage: "person.3")
+                }
+        }
+        .sheet(isPresented: $showingAddPractice) {
+            AddPracticeView(
+                date: viewModel.selectedDate,
+                viewModel: viewModel,
+                onSave: {
+                    showingAddPractice = false
+                }
+            )
+        }
+        .sheet(isPresented: $showingPracticeDetails) {
+            if let practice = viewModel.practiceForDate(viewModel.selectedDate) {
+                NavigationStack {
+                    if practice.type == .competition {
+                        AddCompetitionView(
+                            date: viewModel.selectedDate,
+                            viewModel: viewModel,
+                            editingPractice: practice,
+                            onSave: {
+                                showingPracticeDetails = false
+                            }
+                        )
+                    } else {
+                        PracticeEntryView(
+                            date: practice.date,
+                            viewModel: viewModel,
+                            editingPractice: practice,
+                            onSave: {
+                                showingPracticeDetails = false
+                            }
+                        )
+                    }
+                }
             }
-            .sheet(isPresented: $showingDefaultTimeSetting) {
-                DefaultTimeSettingView(viewModel: viewModel)
-            }
-            .sheet(isPresented: $showingTutorial) {
-                TutorialView()
-            }
-            .sheet(isPresented: $showPaywall) {
-                PaywallView()
-            }
+        }
+        .sheet(isPresented: $showingMonthlyFocus) {
+            MonthlyFocusView(
+                viewModel: viewModel,
+                date: viewModel.selectedDate
+            )
+        }
+        .sheet(isPresented: $showingSearchSheet) {
+            UnifiedSearchView(viewModel: viewModel)
+        }
+        .sheet(isPresented: $showingDefaultTimeSetting) {
+            DefaultTimeSettingView(viewModel: viewModel)
+        }
+        .sheet(isPresented: $showingTutorial) {
+            TutorialView()
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
         }
         .onAppear {
             if !hasSeenTutorial {

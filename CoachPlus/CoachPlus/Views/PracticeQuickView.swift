@@ -5,76 +5,74 @@ struct PracticeQuickView: View {
     
     var body: some View {
         if let practice = practice {
-            VStack(spacing: 16) {
-                // Header with practice icon and type
-                HStack {
+            VStack(spacing: 12) {
+                HStack(spacing: 0) {
+                    // Left icon with fixed width
                     Image(systemName: practice.type == .rest ? "moon.zzz.fill" : "figure.run")
                         .font(.title2)
                         .foregroundStyle(practice.type == .rest ? Color.blue : Color.green)
                         .shadow(color: (practice.type == .rest ? Color.blue : Color.green).opacity(0.3), radius: 4)
+                        .frame(width: 40)
                     
-                    Text(practice.type == .rest ? "Rest Day" : "Practice")
-                        .font(.headline)
+                    // Center content
+                    if let firstSection = practice.sections.first, !firstSection.isEmpty {
+                        Text(firstSection)
+                            .font(.callout)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .frame(maxWidth: .infinity)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 8)
+                    }
                     
-                    Spacer()
-                    
-                    // Live Time and Intensity Row
-                    HStack {
-                        if practice.liveTimeMinutes > 0 {
-                            HStack(spacing: 4) {
-                                Image(systemName: "timer")
-                                    .foregroundStyle(.blue)
-                                    .shadow(color: Color.blue.opacity(0.3), radius: 4)
-                                Text("\(practice.liveTimeMinutes)min")
-                                    .font(.subheadline)
-                                    .bold()
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(Color(.systemBackground))
-                                    .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
-                            )
+                    // Timer badge
+                    if practice.liveTimeMinutes > 0 {
+                        HStack(spacing: 2) {
+                            Image(systemName: "timer")
+                                .font(.subheadline)
+                                .foregroundStyle(.blue)
+                            Text("\(practice.liveTimeMinutes)m")
+                                .font(.caption)
+                                .bold()
                         }
-                        
-                        Spacer()
-                        
-                        // Intensity badge
-                        if practice.type != .rest {
-                            HStack(spacing: 4) {
-                                Image(systemName: "flame.fill")
-                                    .foregroundStyle(Color.orange)
-                                    .shadow(color: Color.orange.opacity(0.3), radius: 4)
-                                Text("\(Int(practice.intensity * 10))/10")
-                                    .font(.subheadline)
-                                    .bold()
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(Color(.systemBackground))
-                                    .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
-                            )
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color(.systemBackground))
+                                .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
+                        )
+                    }
+                    
+                    // Intensity badge with extra padding
+                    if practice.type != .rest {
+                        HStack(spacing: 2) {
+                            Image(systemName: "flame.fill")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.orange)
+                            Text("\(Int(practice.intensity * 10))/10")
+                                .font(.caption)
+                                .bold()
                         }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color(.systemBackground))
+                                .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
+                        )
+                        .padding(.leading, 8)
+                        .padding(.trailing, 4)
                     }
                 }
-                
-                // Show first section if available
-                if let firstSection = practice.sections.first, !firstSection.isEmpty {
-                    Text(firstSection)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                }
-              
+                .frame(maxHeight: 44) // Fixed height for vertical centering
             }
-            .padding(20)
+            .padding(16)
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 12)
                     .fill(Color(.systemBackground))
-                    .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+                    .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
             )
         } else {
             EmptyPracticeView()
@@ -195,21 +193,32 @@ struct RegularPracticeQuickView: View {
 
 struct EmptyPracticeView: View {
     var body: some View {
-        VStack(spacing: 12) {
+        HStack(spacing: 12) {
+            // Calendar icon on left
             Image(systemName: "calendar")
-                .font(.title)
+                .font(.title3)
                 .foregroundStyle(.secondary)
+                .frame(width: 40)
             
+            // Centered text
             Text("No practice scheduled")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.callout)
+                .fontWeight(.medium)
+                .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 8)
+            
+            // Empty space matching width of badge area
+            Spacer()
+                .frame(width: 40)
         }
-        .padding(20)
-        .frame(maxWidth: .infinity)
+        .frame(maxHeight: 44)
+        .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 12)
                 .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+                .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
         )
     }
 }
