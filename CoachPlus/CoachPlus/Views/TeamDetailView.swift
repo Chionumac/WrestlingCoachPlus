@@ -2,16 +2,34 @@ import SwiftUI
 
 struct TeamDetailView: View {
     @ObservedObject var viewModel: TeamViewModel
+    @EnvironmentObject private var userManager: UserManager
     let teamId: UUID
     @State private var isEditing = false
     @State private var teamName = ""
     @State private var showingAddMember = false
     @State private var newMemberName = ""
     @State private var newMemberRole: TeamRole = .athlete
+    @State private var showingInviteCode = false
+    @State private var showingShareSheet = false
     @Environment(\.dismiss) private var dismiss
     
     private var team: Team? {
         viewModel.teams.first(where: { $0.id == teamId })
+    }
+    
+    private var isAdmin: Bool {
+        guard let team = team else { return false }
+        return team.isAdmin(userManager.currentUserId)
+    }
+    
+    private var userRole: TeamRole? {
+        guard let team = team else { return nil }
+        
+        if team.ownerId == userManager.currentUserId {
+            return .owner
+        }
+        
+        return team.members.first(where: { $0.id == userManager.currentUserId })?.role
     }
     
     var body: some View {
@@ -19,6 +37,9 @@ struct TeamDetailView: View {
             VStack(alignment: .leading, spacing: 16) {
                 // Team header
                 teamHeader
+                
+                // Team code/invite section
+                teamInviteSection
                 
                 Divider()
                 
@@ -36,11 +57,43 @@ struct TeamDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                editButton
+                if isAdmin {
+                    editButton
+                }
             }
         }
         .sheet(isPresented: $showingAddMember) {
             addMemberSheet
+        }
+        .alert("Team Invite Code", isPresented: $showingInviteCode) {
+            Button("Copy Code", action: {
+                UIPasteboard.general.string = team?.inviteCode
+            })
+            
+            if isAdmin {
+                Button("Regenerate Code", action: {
+                    if let teamId = team?.id,
+                       let _ = viewModel.regenerateTeamCode(teamId: teamId) {
+                        // Code regenerated successfully
+                    }
+                })
+            }
+            
+            Button("Share", action: {
+                showingShareSheet = true
+            })
+            
+            Button("Done", role: .cancel) { }
+        } message: {
+            if let inviteCode = team?.inviteCode {
+                Text("Share this code with team members: \(inviteCode)")
+            }
+        }
+        .sheet(isPresented: $showingShareSheet) {
+            if let inviteCode = team?.inviteCode {
+                let inviteText = "Join my team on CoachPlus! Team code: \(inviteCode)"
+                ShareSheet(activityItems: [inviteText])
+            }
         }
     }
     
@@ -74,6 +127,45 @@ struct TeamDetailView: View {
         }
     }
     
+    private var teamInviteSection: some View {
+        Group {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Team Access")
+                    .font(.headline)
+                
+                Button(action: {
+                    showingInviteCode = true
+                }) {
+                    HStack {
+                        Image(systemName: "person.badge.key.fill")
+                            .foregroundStyle(.blue)
+                        
+                        Text("View Team Invite Code")
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(8)
+                }
+                
+                if isAdmin {
+                    Text("As an admin, you can manage team members and settings.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else if let role = userRole {
+                    Text("Your role: \(role.description)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+    
     private var membersSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -82,11 +174,13 @@ struct TeamDetailView: View {
                 
                 Spacer()
                 
-                Button(action: {
-                    showingAddMember = true
-                }) {
-                    Label("Add", systemImage: "plus.circle")
-                        .font(.subheadline)
+                if isAdmin {
+                    Button(action: {
+                        showingAddMember = true
+                    }) {
+                        Label("Add", systemImage: "plus.circle")
+                            .font(.subheadline)
+                    }
                 }
             }
             
@@ -97,19 +191,45 @@ struct TeamDetailView: View {
                             Text(member.name)
                                 .font(.body)
                             
-                            Text(member.role.description)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            HStack {
+                                Text(member.role.description)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                
+                                if member.id == team.ownerId {
+                                    Text("Owner")
+                                        .font(.caption)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(Color.blue.opacity(0.2))
+                                        .foregroundStyle(.blue)
+                                        .cornerRadius(4)
+                                }
+                            }
                         }
                         
                         Spacer()
                         
-                        if isEditing {
-                            Button(action: {
-                                viewModel.removeMember(teamId: teamId, memberId: member.id)
-                            }) {
-                                Image(systemName: "trash")
-                                    .foregroundStyle(.red)
+                        if isAdmin && member.id != team.ownerId && member.id != userManager.currentUserId {
+                            Menu {
+                                ForEach(TeamRole.allCases.filter { $0 != .owner }, id: \.self) { role in
+                                    Button(action: {
+                                        viewModel.updateMemberRole(teamId: teamId, memberId: member.id, newRole: role)
+                                    }) {
+                                        Text(role.description)
+                                    }
+                                }
+                                
+                                Divider()
+                                
+                                Button(role: .destructive) {
+                                    viewModel.removeMember(teamId: teamId, memberId: member.id)
+                                } label: {
+                                    Text("Remove")
+                                }
+                            } label: {
+                                Image(systemName: "ellipsis.circle")
+                                    .foregroundStyle(.secondary)
                             }
                         }
                     }
@@ -156,6 +276,17 @@ struct TeamDetailView: View {
             }
             
             Text("Total Members: \(team?.members.count ?? 0)")
+            
+            if !isAdmin, let team = team {
+                Button(role: .destructive) {
+                    viewModel.leaveTeam(teamId: team.id)
+                    dismiss()
+                } label: {
+                    Text("Leave Team")
+                        .foregroundStyle(.red)
+                }
+                .padding(.top, 8)
+            }
         }
     }
     
@@ -181,7 +312,7 @@ struct TeamDetailView: View {
                     TextField("Name", text: $newMemberName)
                     
                     Picker("Role", selection: $newMemberRole) {
-                        ForEach(TeamRole.allCases, id: \.self) { role in
+                        ForEach(TeamRole.allCases.filter { $0 != .owner }, id: \.self) { role in
                             Text(role.description).tag(role)
                         }
                     }
@@ -240,5 +371,6 @@ struct TeamDetailView: View {
         viewModel.teams.append(team)
         
         return TeamDetailView(viewModel: viewModel, teamId: team.id)
+            .environmentObject(UserManager.shared)
     }
 } 
