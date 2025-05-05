@@ -7,7 +7,6 @@ struct UnifiedSearchView: View {
     @State private var selectedFilter: SearchFilter = .all
     @State private var performanceThreshold: Double = 0.0
     @State private var selectedPractice: Practice? = nil
-    @State private var showingPracticeEdit = false
     
     enum SearchFilter {
         case all
@@ -85,7 +84,6 @@ struct UnifiedSearchView: View {
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     selectedPractice = practice
-                                    showingPracticeEdit = true
                                 }
                         }
                     }
@@ -99,24 +97,22 @@ struct UnifiedSearchView: View {
                     Button("Done") { dismiss() }
                 }
             }
-            .sheet(isPresented: $showingPracticeEdit) {
-                if let practice = selectedPractice {
-                    if practice.type == .competition {
-                        AddCompetitionView(
-                            date: practice.date,
-                            viewModel: viewModel,
-                            editingPractice: practice
-                        ) {
-                            selectedPractice = nil
-                        }
-                    } else {
-                        PracticeEntryView(
-                            date: practice.date,
-                            viewModel: viewModel,
-                            editingPractice: practice
-                        ) {
-                            selectedPractice = nil
-                        }
+            .sheet(item: $selectedPractice) { practice in
+                if practice.type == .competition {
+                    AddCompetitionView(
+                        date: practice.date,
+                        viewModel: viewModel,
+                        editingPractice: practice
+                    ) {
+                        selectedPractice = nil
+                    }
+                } else {
+                    PracticeEntryView(
+                        date: practice.date,
+                        viewModel: viewModel,
+                        editingPractice: practice
+                    ) {
+                        selectedPractice = nil
                     }
                 }
             }
