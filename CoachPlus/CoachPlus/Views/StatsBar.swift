@@ -3,6 +3,7 @@ import SwiftUI
 struct StatsBar: View {
     @ObservedObject var viewModel: StatsViewModel
     let selectedDate: Date
+    @AppStorage("sliderMetricName") var sliderMetricName: String = "Avg Intensity"
     
     private var monthStats: StatsViewModel.Stats {
         viewModel.monthStats(for: selectedDate)
@@ -59,11 +60,11 @@ struct StatsBar: View {
                     color: .blue
                 )
                 
-                // Monthly Intensity
+                // Monthly Intensity (custom label)
                 StatItem(
                     icon: "flame.fill",
                     value: "\(Int(monthStats.intensity * 10))/10",
-                    label: "Month Intentsity",
+                    label: "Month \(sliderMetricName)",
                     color: .green
                 )
                 
@@ -75,11 +76,11 @@ struct StatsBar: View {
                     color: .blue
                 )
                 
-                // Weekly Intensity
+                // Weekly Intensity (custom label)
                 StatItem(
                     icon: "flame.fill",
                     value: "\(Int(weekStats.intensity * 10))/10",
-                    label: "Week Intensity",
+                    label: "Week \(sliderMetricName)",
                     color: .green
                 )
             }

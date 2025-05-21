@@ -33,6 +33,7 @@ struct PracticeEntryView: View {
     @State private var exportURL: URL?
     @State private var showingShareSheet = false
     @State private var isExporting = false
+    @AppStorage("sliderMetricName") var sliderMetricName: String = "Avg Intensity"
     
     init(
         date: Date,
@@ -41,6 +42,7 @@ struct PracticeEntryView: View {
         practiceType: PracticeType = .practice,
         onSave: @escaping () -> Void = {}
     ) {
+        print("Initializing PracticeEntryView with editingPractice: \(String(describing: editingPractice))")
         self.date = date
         self.viewModel = viewModel
         self.editingPractice = editingPractice
@@ -82,7 +84,8 @@ struct PracticeEntryView: View {
     }()
     
     var body: some View {
-        NavigationStack {
+        print("Rendering PracticeEntryView for date: \(date)")
+        return NavigationStack {
             VStack(spacing: 0) {
                 if case .loading = viewModel.state {
                     ProgressView("Saving...")
@@ -145,7 +148,7 @@ struct PracticeEntryView: View {
                             
                             IntensitySlider(
                                 intensity: $intensity,
-                                title: "Practice Intensity",
+                                title: sliderMetricName,
                                 style: .intensity
                             )
                             
