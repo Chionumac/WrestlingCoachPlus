@@ -99,6 +99,7 @@ struct PaywallView: View {
         } message: {
             Text(restoreAlertMessage)
         }
+        .interactiveDismissDisabled(true)
     }
 }
 
