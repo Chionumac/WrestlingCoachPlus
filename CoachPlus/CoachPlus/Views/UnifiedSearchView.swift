@@ -98,21 +98,21 @@ struct UnifiedSearchView: View {
                 }
             }
             .sheet(item: $selectedPractice) { practice in
-                if practice.type == .competition {
-                    AddCompetitionView(
-                        date: practice.date,
-                        viewModel: viewModel,
-                        editingPractice: practice
-                    ) {
-                        selectedPractice = nil
-                    }
-                } else {
-                    PracticeEntryView(
-                        date: practice.date,
-                        viewModel: viewModel,
-                        editingPractice: practice
-                    ) {
-                        selectedPractice = nil
+                    if practice.type == .competition {
+                        AddCompetitionView(
+                            date: practice.date,
+                            viewModel: viewModel,
+                            editingPractice: practice
+                        ) {
+                            selectedPractice = nil
+                        }
+                    } else {
+                        PracticeEntryView(
+                            date: practice.date,
+                            viewModel: viewModel,
+                            editingPractice: practice
+                        ) {
+                            selectedPractice = nil
                     }
                 }
             }

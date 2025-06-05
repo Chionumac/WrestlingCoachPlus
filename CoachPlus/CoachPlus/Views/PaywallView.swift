@@ -8,90 +8,80 @@ struct PaywallView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            // Header
-            VStack(spacing: 8) {
-                Text("Continue Using Coach+")
-                    .font(.system(.title, design: .rounded, weight: .bold))
-                    .multilineTextAlignment(.center)
-                Text("Your free trial has ended")
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.top, 40)
-            
-            // Features
+            Spacer()
+            Text("Continue Using Coach+")
+                .font(.largeTitle.bold())
+                .multilineTextAlignment(.center)
+            Text("Your free trial has ended")
+                .font(.title3)
+                .foregroundColor(.gray)
+                .padding(.bottom, 16)
             VStack(alignment: .leading, spacing: 16) {
-                FeatureRow(icon: "checkmark.circle.fill", text: "Keep tracking your practices")
-                FeatureRow(icon: "checkmark.circle.fill", text: "Maintain your performance data")
-                FeatureRow(icon: "checkmark.circle.fill", text: "Continue analyzing progress")
-                FeatureRow(icon: "checkmark.circle.fill", text: "Access your coaching history")
+                Label("Keep tracking your practices", systemImage: "checkmark.circle.fill")
+                Label("Maintain your performance data", systemImage: "checkmark.circle.fill")
+                Label("Continue analyzing progress", systemImage: "checkmark.circle.fill")
+                Label("Access your coaching history", systemImage: "checkmark.circle.fill")
             }
-            .padding(.vertical, 30)
+            .foregroundColor(.blue)
+            .font(.body)
+            .padding(.bottom, 32)
+            
+            // Subscribe Button
+            Button(action: {
+                Task {
+                    do {
+                        try await subscriptionManager.purchase()
+                    } catch {
+                        restoreAlertMessage = error.localizedDescription
+                        showingRestoreAlert = true
+                    }
+                }
+            }) {
+                Text("Subscribe")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 8)
+            
+            // Restore Purchase Button
+            Button(action: {
+                Task {
+                    do {
+                        try await subscriptionManager.restorePurchases()
+                        restoreAlertMessage = "Purchases restored!"
+                    } catch {
+                        restoreAlertMessage = error.localizedDescription
+                    }
+                    showingRestoreAlert = true
+                }
+            }) {
+                Text("Restore Purchase")
+                    .font(.subheadline)
+                    .foregroundColor(.blue)
+            }
+            .padding(.bottom, 24)
             
             Spacer()
-            
-            // Subscription Button
-            if let product = subscriptionManager.products.first {
-                VStack(spacing: 8) {
-                    Button {
-                        Task {
-                            try? await subscriptionManager.purchase()
-                            dismiss()
-                        }
-                    } label: {
-                        Text("Subscribe for \(product.displayPrice)/year")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(12)
-                    }
-                    
-                    Button {
-                        Task {
-                            let result = try? await subscriptionManager.restorePurchases()
-                            switch result {
-                            case .restored:
-                                restoreAlertMessage = "Your purchases have been restored successfully!"
-                                showingRestoreAlert = true
-                                // Dismiss after successful restore
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                    dismiss()
-                                }
-                            case .noPurchasesFound:
-                                restoreAlertMessage = "No previous purchases were found to restore."
-                                showingRestoreAlert = true
-                            case .error:
-                                restoreAlertMessage = "There was an error restoring your purchases. Please try again."
-                                showingRestoreAlert = true
-                            case .none:
-                                restoreAlertMessage = "An unknown error occurred. Please try again."
-                                showingRestoreAlert = true
-                            }
-                        }
-                    } label: {
-                        Text("Restore Purchases")
-                            .font(.subheadline)
-                            .foregroundColor(.blue)
-                    }
-                    .padding(.top, 8)
-                    
-                    Text("Continue using all features for \(product.displayPrice)/year")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            HStack {
+                Button("Terms of Service") {
+                    // Open terms URL
                 }
-            }
-            
-            // Terms and Privacy
-            HStack(spacing: 4) {
-                Link("Terms of Service", destination: URL(string: "https://chionumac.github.io/wrestlingcoachplus-terms")!)
+                .font(.footnote)
+                .foregroundColor(.gray)
                 Text("•")
-                Link("Privacy Policy", destination: URL(string: "https://chionumac.github.io/wrestlingcoachplus-privacy/privacy-policy")!)
+                    .foregroundColor(.gray)
+                Button("Privacy Policy") {
+                    // Open privacy URL
+                }
+                .font(.footnote)
+                .foregroundColor(.gray)
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .padding(.bottom, 20)
+            .padding(.bottom, 8)
         }
         .padding()
         .alert("Restore Purchases", isPresented: $showingRestoreAlert) {

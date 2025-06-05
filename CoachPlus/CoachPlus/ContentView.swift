@@ -18,6 +18,7 @@ struct ContentView: View {
     @State private var showingTutorial = false
     @State private var showPaywall = false
     @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @State private var showingSettings = false
     
     var body: some View {
         NavigationStack {
@@ -64,7 +65,8 @@ struct ContentView: View {
                     showingMonthlyFocus: $showingMonthlyFocus,
                     showingSearchSheet: $showingSearchSheet,
                     showingDefaultTimeSetting: $showingDefaultTimeSetting,
-                    showingTutorial: $showingTutorial
+                    showingTutorial: $showingTutorial,
+                    showingSettings: $showingSettings
                 )
             }
             .sheet(isPresented: $showingAddPractice) {
@@ -119,6 +121,9 @@ struct ContentView: View {
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
             }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
+            }
         }
         .onAppear {
             if !hasSeenTutorial {
@@ -126,6 +131,12 @@ struct ContentView: View {
                 hasSeenTutorial = true
             }
         }
+        .onChange(of: subscriptionManager.subscriptionStatus) { _, newStatus in
+            if case .notSubscribed = newStatus {
+                showPaywall = true
+            }
+        }
+        // .disabled(!subscriptionManager.isFeatureUnlocked()) // Temporarily disable this for testing
     }
 }
 

@@ -52,9 +52,12 @@ struct BlockEditorGrid: View {
                                 }
                                 
                                 Button(role: .destructive) {
-                                    blocks.removeAll { $0.id == block.id }
-                                    if blocks.isEmpty {
-                                        blocks.append(PracticeBlock())
+                                    if blocks.count > 1 {
+                                        blocks.removeAll { $0.id == block.id }
+                                    } else {
+                                        // If this is the last block, just clear its content instead of deleting
+                                        block.title = ""
+                                        block.content = ""
                                     }
                                 } label: {
                                     Label("Delete Block", systemImage: "trash")

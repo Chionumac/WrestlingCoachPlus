@@ -246,3 +246,39 @@ class PracticeViewModel: ObservableObject {
         state = .error(error)
     }
 } 
+
+extension PracticeViewModel {
+    func statsForMonth(_ date: Date) -> MonthlyStats {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month], from: date)
+        guard let startOfMonth = calendar.date(from: components) else {
+            return MonthlyStats(month: date, practiceCount: 0, competitionCount: 0, averageIntensity: 0, totalLiveTime: 0, liftCount: 0, restDayCount: 0)
+        }
+        let endOfMonth = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: startOfMonth) ?? startOfMonth
+
+        let practicesThisMonth = practices.filter { $0.date >= startOfMonth && $0.date <= endOfMonth }
+        let practiceCount = practicesThisMonth.filter { $0.type == .practice }.count
+        let competitionCount = practicesThisMonth.filter { $0.type == .competition }.count
+        let averageIntensity = practicesThisMonth.map { $0.intensity }.average
+        let totalLiveTime = practicesThisMonth.map { $0.liveTimeMinutes }.reduce(0, +)
+        let liftCount = practicesThisMonth.filter { $0.includesLift }.count
+        let restDayCount = practicesThisMonth.filter { $0.type == .rest }.count
+
+        return MonthlyStats(
+            month: startOfMonth,
+            practiceCount: practiceCount,
+            competitionCount: competitionCount,
+            averageIntensity: averageIntensity,
+            totalLiveTime: totalLiveTime,
+            liftCount: liftCount,
+            restDayCount: restDayCount
+        )
+    }
+}
+
+extension Array where Element == Double {
+    var average: Double {
+        guard !isEmpty else { return 0 }
+        return reduce(0, +) / Double(count)
+    }
+} 

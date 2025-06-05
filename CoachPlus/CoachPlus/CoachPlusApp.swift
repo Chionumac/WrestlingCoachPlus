@@ -21,6 +21,8 @@ struct CoachPlusApp: App {
         // Lock orientation to portrait
         UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
         AppDelegate.orientationLock = .portrait
+        NotificationManager.shared.requestAuthorization()
+        NotificationManager.shared.scheduleMonthlyReviewNotification()
     }
     
     var body: some Scene {

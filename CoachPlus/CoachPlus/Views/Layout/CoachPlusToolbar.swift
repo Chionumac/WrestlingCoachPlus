@@ -5,6 +5,7 @@ struct CoachPlusToolbar: ToolbarContent {
     @Binding var showingSearchSheet: Bool
     @Binding var showingDefaultTimeSetting: Bool
     @Binding var showingTutorial: Bool
+    @Binding var showingSettings: Bool
     
     var body: some ToolbarContent {
         ToolbarItem(placement: .principal) {
@@ -34,6 +35,10 @@ struct CoachPlusToolbar: ToolbarContent {
                 
                 Button(action: { showingTutorial = true }) {
                     Label("Tutorial", systemImage: "questionmark.circle")
+                }
+                
+                Button(action: { showingSettings = true }) {
+                    Label("Settings", systemImage: "gear")
                 }
             } label: {
                 Image(systemName: "ellipsis.circle.fill")
